@@ -1,0 +1,118 @@
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--app-bg);
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 40px 32px;
+  border: 1px solid var(--login-border, rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+  background: var(--login-card-bg, rgba(255, 255, 255, 0.04));
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--app-fg);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: var(--login-muted, rgba(255, 255, 255, 0.5));
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.login-error {
+  font-size: 13px;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-field label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--login-label, rgba(255, 255, 255, 0.6));
+}
+
+.login-field input {
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--app-fg);
+  background: var(--login-input-bg, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--login-input-border, rgba(255, 255, 255, 0.12));
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.login-field input:focus {
+  border-color: #6366f1;
+}
+
+.login-button {
+  margin-top: 4px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #fff;
+  background: #6366f1;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.login-button:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.login-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 亮色主题 */
+[data-theme="light"] .login-card {
+  border-color: #e2e8f0;
+  background: #fff;
+}
+
+[data-theme="light"] .login-subtitle {
+  color: #64748b;
+}
+
+[data-theme="light"] .login-field label {
+  color: #475569;
+}
+
+[data-theme="light"] .login-field input {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}

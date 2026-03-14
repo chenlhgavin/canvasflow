@@ -1,0 +1,3 @@
+[submodule "vendors/PolyStudio"]
+	path = vendors/PolyStudio
+	url = https://github.com/hirogoing/PolyStudio.git

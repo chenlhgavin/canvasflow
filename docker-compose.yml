@@ -1,0 +1,38 @@
+services:
+  backend:
+    build: ./backend
+    container_name: canvasflow-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      # 通过共享 Docker 网络直接访问 infrastructure 容器
+      - DATABASE_URL=mysql+aiomysql://canvasflow:canvasflow_pwd@mysql:3306/canvasflow
+      - MINIO_ENDPOINT=minio:9000
+    networks:
+      - infra
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build: ./frontend
+    container_name: canvasflow-frontend
+    restart: unless-stopped
+    ports:
+      - "5177:80"
+    networks:
+      - infra
+    depends_on:
+      backend:
+        condition: service_healthy
+
+networks:
+  infra:
+    external: true
+    name: infrastructure_default

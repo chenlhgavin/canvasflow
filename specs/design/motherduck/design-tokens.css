@@ -1,0 +1,97 @@
+/* Design Tokens extracted from https://motherduck.com/ */
+/* Generated: 2026-01-26T12:12:45.589Z */
+
+:root {
+  --toastify-color-light: #fff;
+  --toastify-color-dark: #121212;
+  --toastify-color-info: #3498db;
+  --toastify-color-success: #07bc0c;
+  --toastify-color-warning: #f1c40f;
+  --toastify-color-error: #e74c3c;
+  --toastify-color-transparent: hsla(0,0%,100%,.7);
+  --toastify-icon-color-info: var(--toastify-color-info);
+  --toastify-icon-color-success: var(--toastify-color-success);
+  --toastify-icon-color-warning: var(--toastify-color-warning);
+  --toastify-icon-color-error: var(--toastify-color-error);
+  --toastify-toast-width: fit-content;
+  --toastify-toast-background: #fff;
+  --toastify-toast-min-height: fit-content;
+  --toastify-toast-max-height: 800px;
+  --toastify-font-family: sans-serif;
+  --toastify-z-index: 9999;
+  --toastify-text-color-light: #757575;
+  --toastify-text-color-dark: #fff;
+  --toastify-text-color-info: #fff;
+  --toastify-text-color-success: #fff;
+  --toastify-text-color-warning: #fff;
+  --toastify-text-color-error: #fff;
+  --toastify-spinner-color: #616161;
+  --toastify-spinner-color-empty-area: #e0e0e0;
+  --toastify-color-progress-light: linear-gradient(90deg,#4cd964,#5ac8fa,#007aff,#34aadc,#5856d6,#ff2d55);
+  --toastify-color-progress-dark: #bb86fc;
+  --toastify-color-progress-info: var(--toastify-color-info);
+  --toastify-color-progress-success: var(--toastify-color-success);
+  --toastify-color-progress-warning: var(--toastify-color-warning);
+  --toastify-color-progress-error: var(--toastify-color-error);
+  --header-mobile: 70px;
+  --header-desktop: 90px;
+  --eyebrow-mobile: 70px;
+  --eyebrow-desktop: 55px;
+  --swiper-theme-color: #007aff;
+
+  /* Extracted Colors */
+  --extracted-bg-1: rgb(244, 239, 234);
+  --extracted-bg-2: rgb(255, 222, 0);
+  --extracted-bg-3: rgb(56, 56, 56);
+  --extracted-bg-4: rgb(111, 194, 255);
+  --extracted-bg-5: rgb(255, 255, 255);
+  --extracted-bg-6: rgba(248, 248, 247, 0.7);
+  --extracted-bg-7: rgb(248, 248, 247);
+  --extracted-bg-8: rgb(249, 238, 62);
+  --extracted-bg-9: rgb(83, 219, 201);
+  --extracted-bg-10: rgba(43, 165, 255, 0.4);
+  --extracted-bg-11: rgb(235, 249, 255);
+  --extracted-bg-12: rgb(232, 245, 233);
+  --extracted-bg-13: rgb(247, 241, 255);
+  --extracted-bg-14: rgb(249, 251, 231);
+  --extracted-bg-15: rgb(255, 253, 231);
+  --extracted-bg-16: rgb(236, 239, 241);
+  --extracted-bg-17: rgb(234, 240, 255);
+  --extracted-bg-18: rgb(255, 235, 233);
+  --extracted-bg-19: rgb(253, 237, 218);
+  --extracted-bg-20: rgb(255, 113, 105);
+  --extracted-text-1: rgb(0, 0, 0);
+  --extracted-text-2: rgb(56, 56, 56);
+  --extracted-text-3: rgb(161, 161, 161);
+  --extracted-text-4: rgb(255, 255, 255);
+  --extracted-text-5: rgb(162, 162, 162);
+  --extracted-text-6: rgb(248, 248, 247);
+
+  /* Extracted Typography */
+  --font-primary: "Aeonik Mono", sans-serif;
+  --font-secondary: "Aeonik Fono", "Aeonik Mono";
+  --font-font-3: Inter, sans-serif;
+  --font-font-4: Inter, serif;
+  --font-font-5: Inter, Arial, sans-serif;
+
+  /* Extracted Spacing */
+  --spacing-1: 1px;
+  --spacing-2: 4px;
+  --spacing-3: 8px;
+  --spacing-4: 9px;
+  --spacing-5: 9px;
+  --spacing-6: 10px;
+  --spacing-7: 11px;
+  --spacing-8: 11px;
+  --spacing-9: 12px;
+  --spacing-10: 14px;
+  --spacing-11: 16px;
+  --spacing-12: 16px;
+
+  /* Extracted Effects */
+  --shadow-sm: rgb(56, 56, 56) -12px 12px 0px 0px;
+  --shadow-md: rgba(0, 0, 0, 0.25) 0px 4px 8px 0px;
+  --radius-sm: 2px;
+  --radius-md: 50%;
+  --radius-lg: 10px;
+}

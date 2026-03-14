@@ -1,0 +1,139 @@
+/* Design Tokens extracted from PolyStudio frontend */
+/* Source: vendors/PolyStudio/frontend/src/ */
+/* Generated: 2026-03-14 */
+
+:root {
+  /* ========================================
+     Primary Colors
+     ======================================== */
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --accent-purple: rgba(168, 85, 247, 1);
+
+  /* ========================================
+     Accent / Status Colors
+     ======================================== */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #f43f5e;
+  --color-info: #3b82f6;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-slate-400: #94a3b8;
+
+  /* ========================================
+     Border Radius
+     ======================================== */
+  --radius-lg: 1rem;         /* 16px - panels, modals */
+  --radius-md: 0.75rem;      /* 12px - buttons, dropdowns */
+  --radius-sm: 0.5rem;       /* 8px  - tool calls, small buttons */
+  --radius-card: 18px;       /* project cards */
+  --radius-pill: 2rem;       /* 32px - pill buttons, inputs */
+  --radius-full: 999px;      /* chips, tags */
+  --radius-circle: 50%;      /* circular buttons */
+
+  /* ========================================
+     Typography
+     ======================================== */
+  --font-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+  --font-tool: 'Menlo', 'Monaco', 'Courier New', monospace;
+  --font-kbd: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* ========================================
+     Gradients
+     ======================================== */
+  --gradient-brand: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(168, 85, 247, 0.85));
+  --gradient-brand-hover: linear-gradient(135deg, rgba(37, 99, 235, 1), rgba(168, 85, 247, 0.95));
+  --gradient-panel-dark: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.90));
+  --gradient-panel-light: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.92));
+
+  /* ========================================
+     Layout
+     ======================================== */
+  --container-hero: 980px;
+  --container-list: 980px;
+  --chat-panel-width: 380px;
+  --page-padding: 28px;
+  --page-padding-mobile: 18px;
+  --grid-gap: 14px;
+  --canvas-dot-size: 24px;
+
+  /* ========================================
+     Transitions
+     ======================================== */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-smooth: 0.18s ease;
+  --transition-slow: 0.3s ease;
+  --transition-panel: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ========================================
+   Dark Theme (Default)
+   ======================================== */
+[data-theme="dark"] {
+  --bg-color: #070a12;
+  --app-bg: #070a12;
+  --app-fg: #e5e7eb;
+  --panel-bg: rgba(15, 23, 42, 0.92);
+  --text-primary: rgba(229, 231, 235, 0.95);
+  --text-secondary: rgba(229, 231, 235, 0.65);
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-hover: rgba(255, 255, 255, 0.22);
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --surface-active: rgba(255, 255, 255, 0.10);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 6px 14px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 18px 45px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 20px 50px rgba(0, 0, 0, 0.35);
+  --shadow-chip: 0 6px 14px rgba(0, 0, 0, 0.18);
+
+  /* Panel glow */
+  --shadow-panel: 0 18px 45px rgba(0, 0, 0, 0.55),
+                   0 0 90px rgba(37, 99, 235, 0.16),
+                   0 0 110px rgba(168, 85, 247, 0.12);
+
+  /* Message bubble shadows */
+  --shadow-user-msg: 0 10px 24px rgba(0, 0, 0, 0.28),
+                     0 0 30px rgba(37, 99, 235, 0.22);
+  --shadow-assistant-msg: 0 10px 28px rgba(0, 0, 0, 0.25);
+}
+
+/* ========================================
+   Light Theme
+   ======================================== */
+[data-theme="light"] {
+  --bg-color: #f8fafc;
+  --app-bg: #f8fafc;
+  --app-fg: #0f172a;
+  --panel-bg: rgba(255, 255, 255, 0.88);
+  --text-primary: rgba(15, 23, 42, 0.96);
+  --text-secondary: rgba(15, 23, 42, 0.64);
+  --border-color: rgba(15, 23, 42, 0.12);
+  --border-hover: rgba(15, 23, 42, 0.22);
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-hover: rgba(255, 255, 255, 0.92);
+  --surface-active: rgba(255, 255, 255, 0.98);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 10px 24px rgba(15, 23, 42, 0.10);
+  --shadow-lg: 0 26px 60px rgba(15, 23, 42, 0.12);
+  --shadow-card: 0 22px 60px rgba(15, 23, 42, 0.10);
+  --shadow-chip: 0 6px 14px rgba(15, 23, 42, 0.08);
+
+  /* Panel glow */
+  --shadow-panel: 0 18px 45px rgba(15, 23, 42, 0.10),
+                   0 0 90px rgba(37, 99, 235, 0.10),
+                   0 0 110px rgba(168, 85, 247, 0.08);
+
+  /* Message bubble shadows */
+  --shadow-user-msg: 0 10px 24px rgba(15, 23, 42, 0.08);
+  --shadow-assistant-msg: 0 10px 28px rgba(15, 23, 42, 0.08);
+}

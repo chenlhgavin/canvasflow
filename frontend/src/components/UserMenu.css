@@ -1,0 +1,113 @@
+.user-menu {
+  position: relative;
+  margin-left: auto;
+}
+
+.user-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: var(--app-fg);
+  opacity: 0.7;
+  cursor: pointer;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.user-menu-trigger:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .user-menu-trigger:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.user-menu-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #6366f1;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.user-menu-name {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-menu-chevron {
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 180px;
+  background: var(--app-bg);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .user-menu-dropdown {
+  background: #fff;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  color: var(--app-fg);
+  cursor: pointer;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.user-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .user-menu-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.user-menu-item--danger {
+  color: #ef4444;
+}
+
+.user-menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 0;
+}
+
+[data-theme="light"] .user-menu-divider {
+  background: #e2e8f0;
+}
