@@ -1,7 +1,10 @@
 """画布/项目模型"""
+
 from datetime import datetime
-from sqlalchemy import String, Text, DateTime, func
+
+from sqlalchemy import DateTime, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from canvasflow.database import Base
 
 

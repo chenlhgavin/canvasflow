@@ -1,9 +1,12 @@
 """文生图工具 - 使用火山引擎 Seedream API"""
+
 import json
 import logging
+
 import requests
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
+
 from canvasflow.config import settings
 from canvasflow.services.image import download_and_save_image
 
@@ -45,8 +48,13 @@ def parse_size(size: str) -> str:
 
 class GenerateImageInput(BaseModel):
     """图像生成输入参数"""
+
     prompt: str = Field(description="图像生成的提示词，详细描述想要生成的图像内容，支持中英文")
-    size: str = Field(default="1:1", description="图片尺寸，支持宽高比枚举（1:1, 4:3, 3:4, 16:9, 9:16, 3:2, 2:3, 21:9）或自定义格式（如 2048x2048），默认 1:1")
+    size: str = Field(
+        default="1:1",
+        description="图片尺寸，支持宽高比枚举（1:1, 4:3, 3:4, 16:9, 9:16, 3:2, 2:3, 21:9）"
+        "或自定义格式（如 2048x2048），默认 1:1",
+    )
 
 
 @tool("generate_image", args_schema=GenerateImageInput)
@@ -75,13 +83,10 @@ def generate_image_tool(prompt: str, size: str = "1:1") -> str:
             "response_format": "url",
             "size": size_value,
             "stream": False,
-            "watermark": True
+            "watermark": True,
         }
 
-        headers = {
-            "Authorization": f"Bearer {settings.volcano_api_key}",
-            "Content-Type": "application/json"
-        }
+        headers = {"Authorization": f"Bearer {settings.volcano_api_key}", "Content-Type": "application/json"}
 
         logger.info(f"调用火山引擎生成 API: {url}")
         response = requests.post(url, json=payload, headers=headers, timeout=120)
@@ -113,7 +118,7 @@ def generate_image_tool(prompt: str, size: str = "1:1") -> str:
             "local_path": local_path,
             "prompt": prompt,
             "provider": "volcano",
-            "message": "图片已生成并保存到对象存储"
+            "message": "图片已生成并保存到对象存储",
         }
 
         result_json = json.dumps(result, ensure_ascii=False)
@@ -123,5 +128,6 @@ def generate_image_tool(prompt: str, size: str = "1:1") -> str:
     except Exception as e:
         logger.error(f"图像生成失败: {str(e)}")
         import traceback
+
         logger.error(traceback.format_exc())
         return f"Error generating image: {str(e)}"

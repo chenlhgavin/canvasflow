@@ -1,0 +1,223 @@
+---
+import { topics } from '../../data/topics';
+import { url } from '../../utils/path';
+
+const currentYear = new Date().getFullYear();
+
+const footerLinks = {
+  知识主题: topics.map((t) => ({
+    name: `${t.icon} ${t.name}`,
+    href: url(`/topics/${t.slug}`),
+  })),
+  导航: [
+    { name: '首页', href: url('/') },
+    { name: '关于', href: url('/about') },
+  ],
+};
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <h3 class="footer-logo">CanvasFlow</h3>
+        <p class="footer-tagline">
+          探索 AIGC 技术前沿
+        </p>
+        <p class="footer-description">
+          图像生成、3D、视频、虚拟人、音频、ComfyUI 等 AIGC 领域的知识汇总。
+        </p>
+      </div>
+
+      <div class="footer-links">
+        {Object.entries(footerLinks).map(([category, links]) => (
+          <div class="footer-column">
+            <h4 class="footer-heading">{category}</h4>
+            <ul class="footer-list">
+              {links.map((link) => (
+                <li>
+                  <a href={link.href} class="footer-link">
+                    {link.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="copyright">
+        &copy; {currentYear} CanvasFlow. All rights reserved.
+      </p>
+      <p class="powered-by">
+        Powered by <a href="https://astro.build" target="_blank" rel="noopener">Astro</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background-color: var(--surface);
+    padding: var(--space-16) 0 var(--space-8);
+    margin-top: var(--space-24);
+  }
+
+  :global([data-theme="motherduck"]) .footer {
+    border-top: 2px solid var(--text-primary);
+  }
+
+  :global([data-theme="motherduck"]) .footer-logo {
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    -webkit-text-fill-color: var(--text-primary);
+    font-family: var(--font-display);
+  }
+
+  :global([data-theme="motherduck"]) .footer-heading {
+    font-family: var(--font-display);
+  }
+
+  :global([data-theme="motherduck"]) .footer-link {
+    border-bottom: none;
+  }
+
+  :global([data-theme="motherduck"]) .footer-link:hover {
+    color: var(--text-primary);
+    background-color: var(--accent);
+    padding: 0 4px;
+    margin: 0 -4px;
+  }
+
+  :global([data-theme="motherduck"]) .footer-bottom {
+    border-top: 2px solid var(--text-primary);
+  }
+
+  :global([data-theme="motherduck"]) .powered-by a {
+    border-bottom: 1px solid var(--text-primary);
+  }
+
+  :global([data-theme="motherduck"]) .powered-by a:hover {
+    text-decoration: none;
+    background-color: var(--accent);
+  }
+
+  .footer-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-12);
+    margin-bottom: var(--space-12);
+  }
+
+  @media (min-width: 768px) {
+    .footer-content {
+      grid-template-columns: 2fr 3fr;
+    }
+  }
+
+  .footer-brand {
+    max-width: 400px;
+  }
+
+  .footer-logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-4);
+    background: linear-gradient(135deg, var(--primary), var(--cursor-purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .footer-tagline {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+  }
+
+  .footer-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .footer-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-8);
+  }
+
+  @media (min-width: 768px) {
+    .footer-links {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .footer-column {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .footer-heading {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-4);
+  }
+
+  .footer-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .footer-link {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  .footer-link:hover {
+    color: var(--primary);
+  }
+
+  .footer-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+  }
+
+  @media (min-width: 768px) {
+    .footer-bottom {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+  }
+
+  .copyright,
+  .powered-by {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  .powered-by a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .powered-by a:hover {
+    text-decoration: underline;
+  }
+</style>

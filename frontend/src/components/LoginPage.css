@@ -99,20 +99,20 @@
 }
 
 /* 亮色主题 */
-[data-theme="light"] .login-card {
+[data-theme='light'] .login-card {
   border-color: #e2e8f0;
   background: #fff;
 }
 
-[data-theme="light"] .login-subtitle {
+[data-theme='light'] .login-subtitle {
   color: #64748b;
 }
 
-[data-theme="light"] .login-field label {
+[data-theme='light'] .login-field label {
   color: #475569;
 }
 
-[data-theme="light"] .login-field input {
+[data-theme='light'] .login-field input {
   background: #f8fafc;
   border-color: #e2e8f0;
 }

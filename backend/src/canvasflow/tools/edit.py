@@ -1,9 +1,12 @@
 """图生图工具 - 使用火山引擎 Seedream API 编辑图片"""
+
 import json
 import logging
+
 import requests
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
+
 from canvasflow.config import settings
 from canvasflow.services.image import download_and_save_image, prepare_image_input
 from canvasflow.tools.generate import parse_size
@@ -13,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class EditImageInput(BaseModel):
     """图像编辑输入参数"""
+
     prompt: str = Field(description="图像编辑的提示词，详细描述想要达到的效果，支持中英文")
     image_url: str = Field(description="需要编辑的源图片URL或本地路径（/storage/images/...）")
     size: str = Field(default="1:1", description="输出图片尺寸，支持宽高比枚举或自定义格式，默认 1:1")
@@ -49,13 +53,10 @@ def edit_image_tool(prompt: str, image_url: str, size: str = "1:1") -> str:
             "response_format": "url",
             "size": size_value,
             "stream": False,
-            "watermark": True
+            "watermark": True,
         }
 
-        headers = {
-            "Authorization": f"Bearer {settings.volcano_api_key}",
-            "Content-Type": "application/json"
-        }
+        headers = {"Authorization": f"Bearer {settings.volcano_api_key}", "Content-Type": "application/json"}
 
         # 日志中隐藏 Base64 数据
         payload_for_log = payload.copy()
@@ -104,5 +105,6 @@ def edit_image_tool(prompt: str, image_url: str, size: str = "1:1") -> str:
     except Exception as e:
         logger.error(f"图像编辑失败: {str(e)}")
         import traceback
+
         logger.error(traceback.format_exc())
         return f"Error editing image: {str(e)}"

@@ -1,137 +1,154 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
-import { Send, Paperclip, Image as ImageIcon, Sparkles, X, ChevronDown, ChevronRight, Link as LinkIcon, ArrowLeft, Sun, Moon, Pause, Play } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
-import './ChatInterface.css'
-import ExcalidrawCanvas, {
-  ExcalidrawCanvasData,
-  ExcalidrawCanvasHandle,
-} from './ExcalidrawCanvas'
-import { apiFetch } from '../utils/api'
+import { useState, useRef, useEffect, useMemo } from 'react';
+import {
+  Send,
+  Paperclip,
+  Image as ImageIcon,
+  Sparkles,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Link as LinkIcon,
+  ArrowLeft,
+  Sun,
+  Moon,
+  Pause,
+  Play,
+} from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import './ChatInterface.css';
+import ExcalidrawCanvas, { ExcalidrawCanvasData, ExcalidrawCanvasHandle } from './ExcalidrawCanvas';
+import { apiFetch } from '../utils/api';
 
 type ChatInterfaceProps = {
-  initialCanvasId?: string
-  theme: 'dark' | 'light'
-  onToggleTheme: () => void
-  onSetTheme: (t: 'dark' | 'light') => void
-}
+  initialCanvasId?: string;
+  theme: 'dark' | 'light';
+  onToggleTheme: () => void;
+  onSetTheme: (t: 'dark' | 'light') => void;
+};
 
 interface ToolCall {
-  id: string
-  name: string
-  arguments: any
-  status: 'executing' | 'done'
-  result?: any
-  imageUrl?: string
+  id: string;
+  name: string;
+  arguments: any;
+  status: 'executing' | 'done';
+  result?: any;
+  imageUrl?: string;
 }
 
 interface Message {
-  role: 'user' | 'assistant'
-  content: string
-  postToolContent?: string
-  toolCalls?: ToolCall[]
-  imageUrls?: string[] // 用户消息中的图片URL列表
+  role: 'user' | 'assistant';
+  content: string;
+  postToolContent?: string;
+  toolCalls?: ToolCall[];
+  imageUrls?: string[]; // 用户消息中的图片URL列表
 }
 
 interface CanvasImage {
-  id: string
-  url: string
-  x: number
-  y: number
-  width: number
-  height: number
+  id: string;
+  url: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 interface Canvas {
-  id: string
-  name: string
-  createdAt: number
+  id: string;
+  name: string;
+  createdAt: number;
   // Legacy: old DOM-drag canvas images
-  images?: CanvasImage[]
+  images?: CanvasImage[];
   // New: Excalidraw canvas data
-  data?: ExcalidrawCanvasData
-  messages: Message[]
+  data?: ExcalidrawCanvasData;
+  messages: Message[];
 }
 
-const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: ChatInterfaceProps) => {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
-  const [uploadedImages, setUploadedImages] = useState<string[]>([])
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const chatMessagesRef = useRef<HTMLDivElement>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
-  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null)
-  const isPausedRef = useRef<boolean>(false)
+const ChatInterface = ({
+  initialCanvasId,
+  theme,
+  onToggleTheme,
+  onSetTheme,
+}: ChatInterfaceProps) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatMessagesRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
+  const isPausedRef = useRef<boolean>(false);
 
   // 工具展开状态
-  const [expandedTools, setExpandedTools] = useState<Set<string>>(new Set())
+  const [expandedTools, setExpandedTools] = useState<Set<string>>(new Set());
 
   // 画布管理状态
-  const [canvases, setCanvases] = useState<Canvas[]>([])
-  const [currentCanvasId, setCurrentCanvasId] = useState<string>('')
+  const [canvases, setCanvases] = useState<Canvas[]>([]);
+  const [currentCanvasId, setCurrentCanvasId] = useState<string>('');
 
-  const excalidrawRef = useRef<ExcalidrawCanvasHandle | null>(null)
-  const [chatPanelCollapsed, setChatPanelCollapsed] = useState(false)
-  const pendingSendRef = useRef<string | null>(null)
+  const excalidrawRef = useRef<ExcalidrawCanvasHandle | null>(null);
+  const [chatPanelCollapsed, setChatPanelCollapsed] = useState(false);
+  const pendingSendRef = useRef<string | null>(null);
 
   // 清理参数中的base64数据
   const sanitizeArguments = (args: any): any => {
-    if (!args || typeof args !== 'object') return args
-    const sanitized = { ...args }
+    if (!args || typeof args !== 'object') return args;
+    const sanitized = { ...args };
     for (const key in sanitized) {
-      const value = sanitized[key]
+      const value = sanitized[key];
       if (typeof value === 'string') {
         if (value.startsWith('data:image/') && value.includes('base64,')) {
-          sanitized[key] = '[Base64数据已隐藏]'
+          sanitized[key] = '[Base64数据已隐藏]';
         } else if (value.length > 1000 && /^[A-Za-z0-9+/=]+$/.test(value)) {
-          sanitized[key] = '[Base64数据已隐藏]'
+          sanitized[key] = '[Base64数据已隐藏]';
         }
       } else if (typeof value === 'object' && value !== null) {
-        sanitized[key] = sanitizeArguments(value)
+        sanitized[key] = sanitizeArguments(value);
       }
     }
-    return sanitized
-  }
+    return sanitized;
+  };
 
   const emptyCanvasData: ExcalidrawCanvasData = useMemo(
     () => ({ elements: [], appState: {}, files: {} }),
     []
-  )
+  );
 
   const sanitizeCanvasData = (data: ExcalidrawCanvasData): ExcalidrawCanvasData => {
-    const appState: any = data?.appState && typeof data.appState === 'object' ? { ...data.appState } : {}
+    const appState: any =
+      data?.appState && typeof data.appState === 'object' ? { ...data.appState } : {};
     if ('collaborators' in appState) {
-      appState.collaborators = undefined
+      appState.collaborators = undefined;
     }
     return {
       elements: Array.isArray(data?.elements) ? data.elements : [],
-      files: (data?.files && typeof data.files === 'object') ? (data.files as any) : {},
+      files: data?.files && typeof data.files === 'object' ? (data.files as any) : {},
       appState,
-    }
-  }
+    };
+  };
 
   const migrateLegacyCanvasToExcalidraw = (canvas: Canvas): Canvas => {
     if (canvas.data) {
-      return { ...canvas, data: sanitizeCanvasData(canvas.data) }
+      return { ...canvas, data: sanitizeCanvasData(canvas.data) };
     }
-    const legacyImages = canvas.images || []
+    const legacyImages = canvas.images || [];
     if (legacyImages.length === 0) {
-      return { ...canvas, data: emptyCanvasData }
+      return { ...canvas, data: emptyCanvasData };
     }
 
-    const files: Record<string, any> = {}
-    const elements: any[] = []
+    const files: Record<string, any> = {};
+    const elements: any[] = [];
 
     for (const img of legacyImages) {
-      const fileId = img.id || `im_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`
+      const fileId = img.id || `im_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
       files[fileId] = {
         id: fileId,
         dataURL: img.url,
         mimeType: 'image/png',
         created: Date.now(),
-      }
+      };
       elements.push({
         type: 'image',
         id: fileId,
@@ -163,124 +180,124 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
         status: 'saved',
         scale: [1, 1],
         crop: null,
-      })
+      });
     }
 
     return {
       ...canvas,
       data: sanitizeCanvasData({ elements, appState: {}, files }),
-    }
-  }
+    };
+  };
 
   // 初始化：加载画布列表
   useEffect(() => {
-    fetchCanvases()
-  }, [])
+    fetchCanvases();
+  }, []);
 
   const getCanvasLink = (canvasId: string) => {
-    const url = new URL(window.location.href)
-    url.searchParams.set('canvasId', canvasId)
-    return url.toString()
-  }
+    const url = new URL(window.location.href);
+    url.searchParams.set('canvasId', canvasId);
+    return url.toString();
+  };
 
   const setCanvasIdInUrl = (canvasId: string) => {
-    const url = new URL(window.location.href)
-    url.searchParams.set('canvasId', canvasId)
-    window.history.replaceState({}, '', url.toString())
-  }
+    const url = new URL(window.location.href);
+    url.searchParams.set('canvasId', canvasId);
+    window.history.replaceState({}, '', url.toString());
+  };
 
   const goHome = () => {
-    const url = new URL(window.location.href)
-    url.searchParams.delete('canvasId')
-    window.history.pushState({}, '', url.toString())
-    window.dispatchEvent(new PopStateEvent('popstate'))
-  }
+    const url = new URL(window.location.href);
+    url.searchParams.delete('canvasId');
+    window.history.pushState({}, '', url.toString());
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
 
   const getCanvasIdFromUrl = () => {
     try {
-      const url = new URL(window.location.href)
-      return url.searchParams.get('canvasId') || ''
+      const url = new URL(window.location.href);
+      return url.searchParams.get('canvasId') || '';
     } catch {
-      return ''
+      return '';
     }
-  }
+  };
 
   const fetchCanvases = async () => {
     try {
-      const res = await fetch('/api/canvases')
+      const res = await fetch('/api/canvases');
       if (res.ok) {
-        const data = await res.json()
+        const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          const migrated = data.map(migrateLegacyCanvasToExcalidraw)
-          setCanvases(migrated)
-          const urlId = getCanvasIdFromUrl()
-          const lastId = localStorage.getItem('canvasflow_current_canvas_id')
-          const preferredId = initialCanvasId || urlId || lastId || ''
-          const target = migrated.find((c: Canvas) => c.id === preferredId) || migrated[0]
-          const canvasId = target.id
-          setCurrentCanvasId(canvasId)
-          setCanvasIdInUrl(canvasId)
+          const migrated = data.map(migrateLegacyCanvasToExcalidraw);
+          setCanvases(migrated);
+          const urlId = getCanvasIdFromUrl();
+          const lastId = localStorage.getItem('canvasflow_current_canvas_id');
+          const preferredId = initialCanvasId || urlId || lastId || '';
+          const target = migrated.find((c: Canvas) => c.id === preferredId) || migrated[0];
+          const canvasId = target.id;
+          setCurrentCanvasId(canvasId);
+          setCanvasIdInUrl(canvasId);
 
-          const pendingKey = `pending_prompt:${canvasId}`
-          const hasPending = sessionStorage.getItem(pendingKey)
+          const pendingKey = `pending_prompt:${canvasId}`;
+          const hasPending = sessionStorage.getItem(pendingKey);
 
           if (hasPending) {
-            setMessages([])
+            setMessages([]);
           } else {
-            setMessages(target.messages || [])
+            setMessages(target.messages || []);
           }
         } else {
-          createNewCanvas()
+          createNewCanvas();
         }
       } else {
-        createNewCanvas()
+        createNewCanvas();
       }
     } catch (e) {
-      console.error('获取画布失败', e)
-      createNewCanvas()
+      console.error('获取画布失败', e);
+      createNewCanvas();
     }
-  }
+  };
 
   const saveCanvasToBackend = async (canvas: Canvas) => {
     try {
       await apiFetch('/api/canvases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(canvas)
-      })
+        body: JSON.stringify(canvas),
+      });
     } catch (e) {
-      console.error('保存画布失败', e)
+      console.error('保存画布失败', e);
     }
-  }
+  };
 
   // 当 messages 变化时，防抖保存到后端
   useEffect(() => {
-    if (!currentCanvasId) return
+    if (!currentCanvasId) return;
 
     const timer = setTimeout(() => {
-      setCanvases(prev => {
-        const next = prev.map(canvas => {
+      setCanvases((prev) => {
+        const next = prev.map((canvas) => {
           if (canvas.id === currentCanvasId) {
             if (JSON.stringify(canvas.messages) !== JSON.stringify(messages)) {
-              const updatedCanvas = { ...canvas, messages }
-              saveCanvasToBackend(updatedCanvas)
-              return updatedCanvas
+              const updatedCanvas = { ...canvas, messages };
+              saveCanvasToBackend(updatedCanvas);
+              return updatedCanvas;
             }
           }
-          return canvas
-        })
-        return next
-      })
-    }, 5000)
+          return canvas;
+        });
+        return next;
+      });
+    }, 5000);
 
-    return () => clearTimeout(timer)
-  }, [messages, currentCanvasId])
+    return () => clearTimeout(timer);
+  }, [messages, currentCanvasId]);
 
   useEffect(() => {
     if (currentCanvasId) {
-      localStorage.setItem('canvasflow_current_canvas_id', currentCanvasId)
+      localStorage.setItem('canvasflow_current_canvas_id', currentCanvasId);
     }
-  }, [currentCanvasId])
+  }, [currentCanvasId]);
 
   const createNewCanvas = async () => {
     const newCanvas: Canvas = {
@@ -289,163 +306,176 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
       createdAt: Date.now(),
       images: [],
       data: emptyCanvasData,
-      messages: []
-    }
+      messages: [],
+    };
 
-    await saveCanvasToBackend(newCanvas)
+    await saveCanvasToBackend(newCanvas);
 
-    setCanvases(prev => [newCanvas, ...prev])
-    setCurrentCanvasId(newCanvas.id)
-    setCanvasIdInUrl(newCanvas.id)
-    setMessages([])
-  }
+    setCanvases((prev) => [newCanvas, ...prev]);
+    setCurrentCanvasId(newCanvas.id);
+    setCanvasIdInUrl(newCanvas.id);
+    setMessages([]);
+  };
 
   const copyCurrentCanvasLink = async () => {
-    if (!currentCanvasId) return
-    const link = getCanvasLink(currentCanvasId)
+    if (!currentCanvasId) return;
+    const link = getCanvasLink(currentCanvasId);
     try {
-      await navigator.clipboard.writeText(link)
+      await navigator.clipboard.writeText(link);
     } catch (e) {
-      window.prompt('复制这个链接：', link)
+      window.prompt('复制这个链接：', link);
     }
-  }
+  };
 
   const toggleToolDetails = (toolId: string) => {
-    setExpandedTools(prev => {
-      const next = new Set(prev)
+    setExpandedTools((prev) => {
+      const next = new Set(prev);
       if (next.has(toolId)) {
-        next.delete(toolId)
+        next.delete(toolId);
       } else {
-        next.add(toolId)
+        next.add(toolId);
       }
-      return next
-    })
-  }
+      return next;
+    });
+  };
 
-  const getCurrentCanvas = () => canvases.find((c) => c.id === currentCanvasId)
+  const getCurrentCanvas = () => canvases.find((c) => c.id === currentCanvasId);
 
-  const updateCurrentCanvasData = (updater: (prev: ExcalidrawCanvasData) => ExcalidrawCanvasData) => {
-    setCanvases(prev => {
-      const nextCanvases = prev.map(canvas => {
+  const updateCurrentCanvasData = (
+    updater: (prev: ExcalidrawCanvasData) => ExcalidrawCanvasData
+  ) => {
+    setCanvases((prev) => {
+      const nextCanvases = prev.map((canvas) => {
         if (canvas.id === currentCanvasId) {
-          const base = migrateLegacyCanvasToExcalidraw(canvas)
-          const newData = updater(base.data || emptyCanvasData)
-          const updatedCanvas: Canvas = { ...base, data: newData }
-          saveCanvasToBackend(updatedCanvas)
-          return updatedCanvas
+          const base = migrateLegacyCanvasToExcalidraw(canvas);
+          const newData = updater(base.data || emptyCanvasData);
+          const updatedCanvas: Canvas = { ...base, data: newData };
+          saveCanvasToBackend(updatedCanvas);
+          return updatedCanvas;
         }
-        return canvas
-      })
-      return nextCanvases
-    })
-  }
+        return canvas;
+      });
+      return nextCanvases;
+    });
+  };
 
   const scrollToBottom = (behavior: ScrollBehavior = 'auto') => {
-    const el = chatMessagesRef.current
-    if (!el) return
-    el.scrollTo({ top: el.scrollHeight, behavior })
-  }
+    const el = chatMessagesRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior });
+  };
 
   useEffect(() => {
-    scrollToBottom('auto')
-  }, [messages])
+    scrollToBottom('auto');
+  }, [messages]);
 
-  const sendMessage = async (userMessage: string, skipAddUserMessage = false, userMessageObj?: Message) => {
-    const trimmed = (userMessage || '').trim()
-    if (!trimmed || isLoading) return
-    setIsLoading(true)
+  const sendMessage = async (
+    userMessage: string,
+    skipAddUserMessage = false,
+    userMessageObj?: Message
+  ) => {
+    const trimmed = (userMessage || '').trim();
+    if (!trimmed || isLoading) return;
+    setIsLoading(true);
 
-    let newUserMessage: Message
+    let newUserMessage: Message;
     if (userMessageObj) {
-      newUserMessage = userMessageObj
+      newUserMessage = userMessageObj;
     } else if (skipAddUserMessage) {
-      const lastMessage = messages[messages.length - 1]
-      if (lastMessage && lastMessage.role === 'user' && (lastMessage.content || '').trim() === trimmed) {
-        newUserMessage = lastMessage
+      const lastMessage = messages[messages.length - 1];
+      if (
+        lastMessage &&
+        lastMessage.role === 'user' &&
+        (lastMessage.content || '').trim() === trimmed
+      ) {
+        newUserMessage = lastMessage;
       } else {
-        newUserMessage = { role: 'user', content: trimmed }
+        newUserMessage = { role: 'user', content: trimmed };
       }
     } else {
-      newUserMessage = { role: 'user', content: trimmed }
-      setMessages((prev) => [...prev, newUserMessage])
+      newUserMessage = { role: 'user', content: trimmed };
+      setMessages((prev) => [...prev, newUserMessage]);
     }
 
     try {
       const messagesToUse = (() => {
         if (userMessageObj) {
-          const last = messages[messages.length - 1]
+          const last = messages[messages.length - 1];
           if (last && last.role === 'user' && (last.content || '').trim() === trimmed) {
-            return messages
+            return messages;
           }
-          return [...messages, userMessageObj]
+          return [...messages, userMessageObj];
         }
-        if (!skipAddUserMessage) return [...messages, newUserMessage]
-        const last = messages[messages.length - 1]
-        if (last && last.role === 'user' && (last.content || '').trim() === trimmed) return messages
-        return [...messages, newUserMessage]
-      })()
+        if (!skipAddUserMessage) return [...messages, newUserMessage];
+        const last = messages[messages.length - 1];
+        if (last && last.role === 'user' && (last.content || '').trim() === trimmed)
+          return messages;
+        return [...messages, newUserMessage];
+      })();
       const messageHistory = messagesToUse.map((msg) => {
-        let content = msg.content || ''
+        let content = msg.content || '';
         if (msg.postToolContent) {
-          content += '\n' + msg.postToolContent
+          content += '\n' + msg.postToolContent;
         }
         if (msg.toolCalls) {
-          const imageUrls = msg.toolCalls
-            .map((tc) => tc.imageUrl)
-            .filter(Boolean) as string[]
+          const imageUrls = msg.toolCalls.map((tc) => tc.imageUrl).filter(Boolean) as string[];
           if (imageUrls.length) {
-            content += `\n\nGenerated Image:\n${imageUrls.map((u) => `- ${u}`).join('\n')}`
+            content += `\n\nGenerated Image:\n${imageUrls.map((u) => `- ${u}`).join('\n')}`;
           }
         }
-        return { role: msg.role, content }
-      })
+        return { role: msg.role, content };
+      });
 
-      const abortController = new AbortController()
-      abortControllerRef.current = abortController
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
 
       const response = await apiFetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'text/event-stream',
+          Accept: 'text/event-stream',
         },
         body: JSON.stringify({
           message: trimmed,
           messages: messageHistory.slice(0, -1),
         }),
         signal: abortController.signal,
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const reader = response.body?.getReader()
-      readerRef.current = reader ?? null
-      const decoder = new TextDecoder()
+      const reader = response.body?.getReader();
+      readerRef.current = reader ?? null;
+      const decoder = new TextDecoder();
 
-      if (!reader) throw new Error('无法读取响应流')
+      if (!reader) throw new Error('无法读取响应流');
 
-      let buffer = ''
+      let buffer = '';
 
       const appendDelta = (deltaText: string) => {
         setMessages((prev) => {
-          const next = [...prev]
-          const last = next[next.length - 1]
-          if (last && last.role === 'assistant' && (!last.toolCalls || last.toolCalls.length === 0)) {
-            next[next.length - 1] = { ...last, content: (last.content || '') + deltaText }
-            return next
+          const next = [...prev];
+          const last = next[next.length - 1];
+          if (
+            last &&
+            last.role === 'assistant' &&
+            (!last.toolCalls || last.toolCalls.length === 0)
+          ) {
+            next[next.length - 1] = { ...last, content: (last.content || '') + deltaText };
+            return next;
           }
-          next.push({ role: 'assistant', content: deltaText })
-          return next
-        })
-      }
+          next.push({ role: 'assistant', content: deltaText });
+          return next;
+        });
+      };
 
       const appendToolStep = (toolCall: ToolCall) => {
         setMessages((prev) => {
           // 防止重复 tool_call id 创建多个消息气泡
-          if (prev.some(m => m.toolCalls?.some(tc => tc.id === toolCall.id))) {
-            return prev
+          if (prev.some((m) => m.toolCalls?.some((tc) => tc.id === toolCall.id))) {
+            return prev;
           }
           return [
             ...prev,
@@ -454,60 +484,60 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
               content: '',
               toolCalls: [toolCall],
             },
-          ]
-        })
-      }
+          ];
+        });
+      };
 
       const updateToolStep = (toolCallId: string, updater: (tc: ToolCall) => ToolCall) => {
         setMessages((prev) => {
           const next = prev.map((m) => {
-            if (!m.toolCalls) return m
-            if (!m.toolCalls.some((tc) => tc.id === toolCallId)) return m
+            if (!m.toolCalls) return m;
+            if (!m.toolCalls.some((tc) => tc.id === toolCallId)) return m;
             return {
               ...m,
               toolCalls: m.toolCalls.map((tc) => (tc.id === toolCallId ? updater(tc) : tc)),
-            }
-          })
-          return next
-        })
-      }
+            };
+          });
+          return next;
+        });
+      };
 
       while (true) {
         if (isPausedRef.current) {
           try {
-            await reader.cancel()
+            await reader.cancel();
           } catch (e) {
             // ignore
           }
-          readerRef.current = null
-          break
+          readerRef.current = null;
+          break;
         }
 
-        const { done, value } = await reader.read()
-        if (done) break
+        const { done, value } = await reader.read();
+        if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true })
-        buffer += chunk
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
-          if (line.trim() === '') continue
+          if (line.trim() === '') continue;
 
           if (line.startsWith('data: ')) {
-            const data = line.slice(6).trim()
-            if (data === '[DONE]') continue
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') continue;
 
             try {
-              const event = JSON.parse(data)
+              const event = JSON.parse(data);
 
               switch (event.type) {
                 case 'delta':
                   if (event.content) {
-                    appendDelta(event.content)
-                    setTimeout(() => scrollToBottom('auto'), 0)
+                    appendDelta(event.content);
+                    setTimeout(() => scrollToBottom('auto'), 0);
                   }
-                  break
+                  break;
 
                 case 'tool_call':
                   appendToolStep({
@@ -515,37 +545,43 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
                     name: event.name,
                     arguments: sanitizeArguments(event.arguments),
                     status: 'executing',
-                  })
-                  break
+                  });
+                  break;
 
                 case 'tool_call_chunk':
-                  break
+                  break;
 
                 case 'tool_result':
                   updateToolStep(event.tool_call_id, (tc) => {
-                    let updatedArgs = tc.arguments
-                    let imageUrl: string | undefined = tc.imageUrl
+                    let updatedArgs = tc.arguments;
+                    let imageUrl: string | undefined = tc.imageUrl;
                     try {
-                      const resultObj = JSON.parse(event.content)
-                      if (resultObj && resultObj.prompt && (!updatedArgs || Object.keys(updatedArgs).length === 0)) {
-                        updatedArgs = { prompt: resultObj.prompt }
+                      const resultObj = JSON.parse(event.content);
+                      if (
+                        resultObj &&
+                        resultObj.prompt &&
+                        (!updatedArgs || Object.keys(updatedArgs).length === 0)
+                      ) {
+                        updatedArgs = { prompt: resultObj.prompt };
                       }
                       if (resultObj && typeof resultObj.image_url === 'string') {
-                        imageUrl = resultObj.image_url
+                        imageUrl = resultObj.image_url;
                       }
                     } catch (e) {
                       // ignore
                     }
-                    let sanitizedResult = event.content
+                    let sanitizedResult = event.content;
                     try {
-                      const resultObj = JSON.parse(event.content)
-                      const sanitizedObj = sanitizeArguments(resultObj)
-                      sanitizedResult = JSON.stringify(sanitizedObj)
+                      const resultObj = JSON.parse(event.content);
+                      const sanitizedObj = sanitizeArguments(resultObj);
+                      sanitizedResult = JSON.stringify(sanitizedObj);
                     } catch (e) {
-                      if (typeof event.content === 'string' &&
-                          (event.content.startsWith('data:image/') ||
-                           (event.content.length > 1000 && /^[A-Za-z0-9+/=]+$/.test(event.content)))) {
-                        sanitizedResult = '[Base64数据已隐藏]'
+                      if (
+                        typeof event.content === 'string' &&
+                        (event.content.startsWith('data:image/') ||
+                          (event.content.length > 1000 && /^[A-Za-z0-9+/=]+$/.test(event.content)))
+                      ) {
+                        sanitizedResult = '[Base64数据已隐藏]';
                       }
                     }
 
@@ -555,198 +591,201 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
                       result: sanitizedResult,
                       arguments: sanitizeArguments(updatedArgs),
                       imageUrl,
-                    }
-                  })
+                    };
+                  });
 
                   if (event.content) {
                     try {
-                      const result = JSON.parse(event.content)
+                      const result = JSON.parse(event.content);
                       if (typeof result.image_url === 'string' && result.image_url) {
-                        const imgUrl: string = result.image_url
-                        await excalidrawRef.current?.addImage({ url: imgUrl })
-                        scrollToBottom('auto')
+                        const imgUrl: string = result.image_url;
+                        await excalidrawRef.current?.addImage({ url: imgUrl });
+                        scrollToBottom('auto');
                       }
                     } catch (e) {
-                      console.error('解析结果失败', e)
+                      console.error('解析结果失败', e);
                     }
                   }
-                  break
+                  break;
 
                 case 'error':
                   setMessages((prev) => {
-                    const newMessages = [...prev]
-                    const lastMessage = newMessages[newMessages.length - 1]
+                    const newMessages = [...prev];
+                    const lastMessage = newMessages[newMessages.length - 1];
                     if (lastMessage && lastMessage.role === 'assistant') {
-                      lastMessage.content = `错误: ${event.error}`
+                      lastMessage.content = `错误: ${event.error}`;
                     }
-                    return newMessages
-                  })
-                  break
+                    return newMessages;
+                  });
+                  break;
               }
             } catch (e) {
-              console.error('解析事件失败:', e)
+              console.error('解析事件失败:', e);
             }
           }
         }
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        console.log('请求已暂停')
-        return
+        console.log('请求已暂停');
+        return;
       }
-      console.error('请求失败:', error)
+      console.error('请求失败:', error);
       setMessages((prev) => {
-        const newMessages = [...prev]
-        const lastMessage = newMessages[newMessages.length - 1]
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
         if (lastMessage && lastMessage.role === 'assistant') {
-          lastMessage.content = `错误: ${error instanceof Error ? error.message : '未知错误'}`
+          lastMessage.content = `错误: ${error instanceof Error ? error.message : '未知错误'}`;
         }
-        return newMessages
-      })
+        return newMessages;
+      });
     } finally {
       if (!isPausedRef.current) {
-        setIsLoading(false)
-        abortControllerRef.current = null
-        readerRef.current = null
+        setIsLoading(false);
+        abortControllerRef.current = null;
+        readerRef.current = null;
       }
-      scrollToBottom('smooth')
+      scrollToBottom('smooth');
     }
-  }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('只支持图片文件')
-      return
+      alert('只支持图片文件');
+      return;
     }
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      const formData = new FormData();
+      formData.append('file', file);
 
       const response = await apiFetch('/api/upload-image', {
         method: 'POST',
         body: formData,
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('上传失败')
+        throw new Error('上传失败');
       }
 
-      const data = await response.json()
-      setUploadedImages(prev => [...prev, data.url])
+      const data = await response.json();
+      setUploadedImages((prev) => [...prev, data.url]);
     } catch (error) {
-      console.error('文件上传失败:', error)
-      alert('文件上传失败，请重试')
+      console.error('文件上传失败:', error);
+      alert('文件上传失败，请重试');
     } finally {
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+        fileInputRef.current.value = '';
       }
     }
-  }
+  };
 
   const removeUploadedImage = (index: number) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index))
-  }
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   // 处理粘贴图片
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     try {
-      const items = e.clipboardData?.items
-      if (!items) return
+      const items = e.clipboardData?.items;
+      if (!items) return;
 
       for (let i = 0; i < items.length; i++) {
-        const item = items[i]
+        const item = items[i];
         if (item.type.indexOf('image') !== -1) {
-          e.preventDefault()
-          const file = item.getAsFile()
-          if (!file) continue
-
-          ;(async () => {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (!file) continue;
+          (async () => {
             try {
-              const formData = new FormData()
-              formData.append('file', file)
+              const formData = new FormData();
+              formData.append('file', file);
 
               const response = await apiFetch('/api/upload-image', {
                 method: 'POST',
                 body: formData,
-              })
+              });
 
               if (!response.ok) {
-                throw new Error('上传失败')
+                throw new Error('上传失败');
               }
 
-              const data = await response.json()
-              setUploadedImages(prev => [...prev, data.url])
+              const data = await response.json();
+              setUploadedImages((prev) => [...prev, data.url]);
             } catch (error) {
-              console.error('图片粘贴上传失败:', error)
-              alert('图片粘贴上传失败，请重试')
+              console.error('图片粘贴上传失败:', error);
+              alert('图片粘贴上传失败，请重试');
             }
-          })()
-          break
+          })();
+          break;
         }
       }
     } catch (error) {
-      console.error('粘贴处理错误:', error)
+      console.error('粘贴处理错误:', error);
     }
-  }
+  };
 
   // 暂停对话
   const handlePause = () => {
     if (isLoading && !isPaused) {
-      setIsPaused(true)
-      isPausedRef.current = true
+      setIsPaused(true);
+      isPausedRef.current = true;
       if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
+        abortControllerRef.current.abort();
       }
       if (readerRef.current) {
-        readerRef.current.cancel()
-        readerRef.current = null
+        readerRef.current.cancel();
+        readerRef.current = null;
       }
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // 恢复对话
   const handleResume = async () => {
     if (isPaused) {
-      setIsPaused(false)
-      isPausedRef.current = false
-      const lastUserMessage = messages.filter(m => m.role === 'user').pop()
+      setIsPaused(false);
+      isPausedRef.current = false;
+      const lastUserMessage = messages.filter((m) => m.role === 'user').pop();
       if (lastUserMessage) {
         setMessages((prev) => {
           const filtered = prev.filter((m, index) => {
-            if (index === prev.length - 1 && m.role === 'assistant' && (!m.content || m.content.trim().length < 10)) {
-              return false
+            if (
+              index === prev.length - 1 &&
+              m.role === 'assistant' &&
+              (!m.content || m.content.trim().length < 10)
+            ) {
+              return false;
             }
-            return true
-          })
-          return filtered
-        })
-        await sendMessage(lastUserMessage.content, true)
+            return true;
+          });
+          return filtered;
+        });
+        await sendMessage(lastUserMessage.content, true);
       }
     }
-  }
+  };
 
   const handleSend = async () => {
-    if ((!input.trim() && uploadedImages.length === 0) || isLoading) return
+    if ((!input.trim() && uploadedImages.length === 0) || isLoading) return;
 
     if (isPaused) {
-      setIsPaused(false)
-      isPausedRef.current = false
+      setIsPaused(false);
+      isPausedRef.current = false;
     }
 
-    let messageContent = input.trim()
-    const imageUrls = [...uploadedImages]
+    let messageContent = input.trim();
+    const imageUrls = [...uploadedImages];
 
     if (uploadedImages.length > 0) {
-      const imageTexts = uploadedImages.map(url => `[图片: ${url}]`).join('\n')
+      const imageTexts = uploadedImages.map((url) => `[图片: ${url}]`).join('\n');
       if (messageContent) {
-        messageContent = `${messageContent}\n\n${imageTexts}`
+        messageContent = `${messageContent}\n\n${imageTexts}`;
       } else {
-        messageContent = imageTexts
+        messageContent = imageTexts;
       }
     }
 
@@ -754,32 +793,32 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
       role: 'user',
       content: messageContent,
       imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
-    }
+    };
 
-    setMessages(prev => [...prev, userMessageObj])
-    setInput('')
-    setUploadedImages([])
+    setMessages((prev) => [...prev, userMessageObj]);
+    setInput('');
+    setUploadedImages([]);
 
-    await sendMessage(messageContent, true, userMessageObj)
-  }
+    await sendMessage(messageContent, true, userMessageObj);
+  };
 
   // 首页创建项目后的 pending prompt 处理
   useEffect(() => {
-    if (!currentCanvasId) return
+    if (!currentCanvasId) return;
 
-    const key = `pending_prompt:${currentCanvasId}`
-    const imagesKey = `pending_images:${currentCanvasId}`
-    const pending = sessionStorage.getItem(key)
-    const pendingImages = sessionStorage.getItem(imagesKey)
+    const key = `pending_prompt:${currentCanvasId}`;
+    const imagesKey = `pending_images:${currentCanvasId}`;
+    const pending = sessionStorage.getItem(key);
+    const pendingImages = sessionStorage.getItem(imagesKey);
 
-    if (!pending || !pending.trim()) return
+    if (!pending || !pending.trim()) return;
 
-    let imageUrls: string[] = []
+    let imageUrls: string[] = [];
     if (pendingImages) {
       try {
-        imageUrls = JSON.parse(pendingImages) as string[]
+        imageUrls = JSON.parse(pendingImages) as string[];
       } catch (e) {
-        console.error('解析图片列表失败', e)
+        console.error('解析图片列表失败', e);
       }
     }
 
@@ -787,89 +826,96 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
       role: 'user',
       content: pending.trim(),
       imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
-    }
+    };
 
-    sessionStorage.removeItem(key)
-    sessionStorage.removeItem(imagesKey)
+    sessionStorage.removeItem(key);
+    sessionStorage.removeItem(imagesKey);
 
-    pendingSendRef.current = pending.trim()
-    setMessages([userMessage])
-  }, [currentCanvasId])
+    pendingSendRef.current = pending.trim();
+    setMessages([userMessage]);
+  }, [currentCanvasId]);
 
   // 监听消息变化，当消息设置完成后自动发送
   useEffect(() => {
-    if (!pendingSendRef.current) return
-    if (messages.length === 0) return
-    if (isLoading) return
+    if (!pendingSendRef.current) return;
+    if (messages.length === 0) return;
+    if (isLoading) return;
 
-    const firstMessage = messages[0]
-    const messageContent = firstMessage.content || ''
-    const pendingContent = pendingSendRef.current
+    const firstMessage = messages[0];
+    const messageContent = firstMessage.content || '';
+    const pendingContent = pendingSendRef.current;
 
-    if (firstMessage.role === 'user' &&
-        (messageContent === pendingContent || messageContent.includes(pendingContent))) {
-      const messageToSend = pendingSendRef.current
-      pendingSendRef.current = null
+    if (
+      firstMessage.role === 'user' &&
+      (messageContent === pendingContent || messageContent.includes(pendingContent))
+    ) {
+      const messageToSend = pendingSendRef.current;
+      pendingSendRef.current = null;
 
       setTimeout(() => {
         const userMessageObj: Message = {
           role: 'user',
           content: firstMessage.content || messageToSend,
           imageUrls: firstMessage.imageUrls,
-        }
+        };
 
-        setMessages(prev => {
-          const hasMessage = prev.some(m =>
-            m.role === 'user' &&
-            (m.content === messageToSend || m.content?.includes(messageToSend))
-          )
+        setMessages((prev) => {
+          const hasMessage = prev.some(
+            (m) =>
+              m.role === 'user' &&
+              (m.content === messageToSend || m.content?.includes(messageToSend))
+          );
           if (!hasMessage) {
-            return [...prev, userMessageObj]
+            return [...prev, userMessageObj];
           } else {
-            return prev.map(m => {
-              if (m.role === 'user' && (m.content === messageToSend || m.content?.includes(messageToSend))) {
-                return userMessageObj
+            return prev.map((m) => {
+              if (
+                m.role === 'user' &&
+                (m.content === messageToSend || m.content?.includes(messageToSend))
+              ) {
+                return userMessageObj;
               }
-              return m
-            })
+              return m;
+            });
           }
-        })
+        });
 
         setTimeout(() => {
-          sendMessage(firstMessage.content || messageToSend, true, userMessageObj)
-        }, 50)
-      }, 150)
+          sendMessage(firstMessage.content || messageToSend, true, userMessageObj);
+        }, 50);
+      }, 150);
     }
-  }, [messages, isLoading])
+  }, [messages, isLoading]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
+      e.preventDefault();
+      handleSend();
     }
-  }
+  };
 
   const cleanMessageContent = (content: string) => {
-    if (!content) return ''
-    return content
-  }
+    if (!content) return '';
+    return content;
+  };
 
   // 获取工具显示名称
   const getToolDisplayName = (name: string) => {
     const map: Record<string, string> = {
-      'generate_image': '生成图像',
-      'edit_image': '编辑图像',
-    }
-    return map[name] || name
-  }
+      generate_image: '生成图像',
+      edit_image: '编辑图像',
+    };
+    return map[name] || name;
+  };
 
   // 获取当前画布数据
-  const currentCanvas = getCurrentCanvas()
+  const currentCanvas = getCurrentCanvas();
   const currentCanvasData =
     (currentCanvas ? migrateLegacyCanvasToExcalidraw(currentCanvas).data : emptyCanvasData) ||
-    emptyCanvasData
-  const hasAnyImages =
-    (currentCanvasData?.elements || []).some((e: any) => e && !e.isDeleted && e.type === 'image')
+    emptyCanvasData;
+  const hasAnyImages = (currentCanvasData?.elements || []).some(
+    (e: any) => e && !e.isDeleted && e.type === 'image'
+  );
 
   return (
     <div className="chat-interface">
@@ -916,64 +962,64 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
                 theme={theme}
                 initialData={currentCanvasData}
                 onDataChange={(data) => {
-                  updateCurrentCanvasData(() => data)
+                  updateCurrentCanvasData(() => data);
                 }}
                 onThemeChange={(nextTheme) => {
                   if (nextTheme === 'dark' || nextTheme === 'light') {
-                    onSetTheme(nextTheme)
+                    onSetTheme(nextTheme);
                   }
                 }}
                 onImageToInput={async (url) => {
                   try {
                     if (url.startsWith('data:')) {
-                      const response = await fetch(url)
-                      const blob = await response.blob()
-                      const formData = new FormData()
-                      formData.append('file', blob, 'image.png')
+                      const response = await fetch(url);
+                      const blob = await response.blob();
+                      const formData = new FormData();
+                      formData.append('file', blob, 'image.png');
 
                       const uploadResponse = await apiFetch('/api/upload-image', {
                         method: 'POST',
                         body: formData,
-                      })
+                      });
 
                       if (!uploadResponse.ok) {
-                        throw new Error('上传失败')
+                        throw new Error('上传失败');
                       }
 
-                      const data = await uploadResponse.json()
-                      setUploadedImages(prev => [...prev, data.url])
+                      const data = await uploadResponse.json();
+                      setUploadedImages((prev) => [...prev, data.url]);
                     } else if (url.startsWith('/storage/')) {
-                      setUploadedImages(prev => [...prev, url])
+                      setUploadedImages((prev) => [...prev, url]);
                     } else {
                       if (url.startsWith('http://') || url.startsWith('https://')) {
                         try {
-                          const response = await fetch(url)
-                          const blob = await response.blob()
-                          const formData = new FormData()
-                          formData.append('file', blob, 'image.png')
+                          const response = await fetch(url);
+                          const blob = await response.blob();
+                          const formData = new FormData();
+                          formData.append('file', blob, 'image.png');
 
                           const uploadResponse = await apiFetch('/api/upload-image', {
                             method: 'POST',
                             body: formData,
-                          })
+                          });
 
                           if (uploadResponse.ok) {
-                            const data = await uploadResponse.json()
-                            setUploadedImages(prev => [...prev, data.url])
+                            const data = await uploadResponse.json();
+                            setUploadedImages((prev) => [...prev, data.url]);
                           } else {
-                            setUploadedImages(prev => [...prev, url])
+                            setUploadedImages((prev) => [...prev, url]);
                           }
                         } catch (e) {
-                          console.error('处理图片 URL 失败:', e)
-                          setUploadedImages(prev => [...prev, url])
+                          console.error('处理图片 URL 失败:', e);
+                          setUploadedImages((prev) => [...prev, url]);
                         }
                       } else {
-                        setUploadedImages(prev => [...prev, url])
+                        setUploadedImages((prev) => [...prev, url]);
                       }
                     }
                   } catch (err) {
-                    console.error('处理图片失败:', err)
-                    alert('添加图片到输入框失败，请重试')
+                    console.error('处理图片失败:', err);
+                    alert('添加图片到输入框失败，请重试');
                   }
                 }}
               />
@@ -1050,7 +1096,11 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
                                   {getToolDisplayName(toolCall.name)}
                                 </span>
                                 <span className="tool-toggle-icon">
-                                  {expandedTools.has(toolCall.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                  {expandedTools.has(toolCall.id) ? (
+                                    <ChevronDown size={14} />
+                                  ) : (
+                                    <ChevronRight size={14} />
+                                  )}
                                 </span>
                               </div>
 
@@ -1063,11 +1113,11 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
                                   {toolCall.result && (
                                     <div className="tool-section">
                                       <span className="section-label">执行结果</span>
-                                      <pre>{
-                                        typeof toolCall.result === 'string'
+                                      <pre>
+                                        {typeof toolCall.result === 'string'
                                           ? toolCall.result
-                                          : JSON.stringify(toolCall.result, null, 2)
-                                      }</pre>
+                                          : JSON.stringify(toolCall.result, null, 2)}
+                                      </pre>
                                     </div>
                                   )}
                                 </div>
@@ -1077,11 +1127,11 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
                         </div>
                       )}
 
-                      {message.toolCalls?.some(tc => tc.imageUrl) && (
+                      {message.toolCalls?.some((tc) => tc.imageUrl) && (
                         <div className="message-images">
                           {message.toolCalls
-                            .filter(tc => tc.imageUrl)
-                            .map(tc => (
+                            .filter((tc) => tc.imageUrl)
+                            .map((tc) => (
                               <div key={`img-${tc.id}`} className="message-image">
                                 <img src={tc.imageUrl} alt="Generated" />
                               </div>
@@ -1091,7 +1141,9 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
 
                       {message.postToolContent && (
                         <div className="message-text">
-                          <ReactMarkdown>{cleanMessageContent(message.postToolContent)}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {cleanMessageContent(message.postToolContent)}
+                          </ReactMarkdown>
                         </div>
                       )}
 
@@ -1113,16 +1165,19 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
                       {(() => {
                         const textContent = message.content
                           .split('\n')
-                          .filter(line => !line.trim().startsWith('[图片:'))
+                          .filter((line) => !line.trim().startsWith('[图片:'))
                           .join('\n')
-                          .trim()
+                          .trim();
                         return textContent ? (
                           <div className="message-text">{textContent}</div>
-                        ) : (message.imageUrls && message.imageUrls.length > 0) ? (
-                          <div className="message-text" style={{ fontStyle: 'italic', color: '#9ca3af' }}>
+                        ) : message.imageUrls && message.imageUrls.length > 0 ? (
+                          <div
+                            className="message-text"
+                            style={{ fontStyle: 'italic', color: '#9ca3af' }}
+                          >
                             （已发送图片）
                           </div>
-                        ) : null
+                        ) : null;
                       })()}
                     </>
                   )}
@@ -1178,19 +1233,11 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
                 disabled={isLoading}
               />
               {isLoading && !isPaused ? (
-                <button
-                  className="pause-button"
-                  onClick={handlePause}
-                  title="暂停对话"
-                >
+                <button className="pause-button" onClick={handlePause} title="暂停对话">
                   <Pause size={18} />
                 </button>
               ) : isPaused ? (
-                <button
-                  className="resume-button"
-                  onClick={handleResume}
-                  title="恢复对话"
-                >
+                <button className="resume-button" onClick={handleResume} title="恢复对话">
                   <Play size={18} />
                 </button>
               ) : (
@@ -1207,7 +1254,7 @@ const ChatInterface = ({ initialCanvasId, theme, onToggleTheme, onSetTheme }: Ch
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ChatInterface
+export default ChatInterface;

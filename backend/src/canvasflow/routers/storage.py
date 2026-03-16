@@ -1,11 +1,13 @@
 """存储代理路由 - MinIO 对象流式返回"""
+
 import logging
 import mimetypes
-from io import BytesIO
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
-from canvasflow.storage import get_minio_client
+
 from canvasflow.config import settings
+from canvasflow.storage import get_minio_client
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -39,7 +41,7 @@ async def proxy_storage(path: str):
             media_type=content_type,
             headers={
                 "Cache-Control": "public, max-age=86400",
-            }
+            },
         )
     except Exception as e:
         logger.error(f"获取对象失败: {path}, {str(e)}")

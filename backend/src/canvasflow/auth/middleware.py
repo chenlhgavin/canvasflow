@@ -1,4 +1,5 @@
 """认证中间件：JWT 验证 + CSRF 双重提交校验"""
+
 from __future__ import annotations
 
 import logging
@@ -22,9 +23,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.settings = settings
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         path = request.url.path
         method = request.method.upper()
 

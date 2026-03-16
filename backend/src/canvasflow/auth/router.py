@@ -1,4 +1,5 @@
 """认证路由：登录、登出、修改密码、当前用户"""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request, Response
@@ -41,9 +42,7 @@ def _resolve_cookie_secure(request: Request) -> bool:
     return proto == "https"
 
 
-def _set_auth_cookies(
-    response: Response, access_token: str, csrf_token: str, request: Request
-) -> None:
+def _set_auth_cookies(response: Response, access_token: str, csrf_token: str, request: Request) -> None:
     max_age = settings.auth_token_expiry_hours * 3600
     secure = _resolve_cookie_secure(request)
     domain = settings.auth_cookie_domain or None
@@ -111,17 +110,13 @@ async def change_password(body: ChangePasswordRequest, request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     async with async_session() as session:
-        result = await session.execute(
-            select(User).where(User.username == username)
-        )
+        result = await session.execute(select(User).where(User.username == username))
         user = result.scalar_one_or_none()
         if user is None:
             raise HTTPException(status_code=401, detail="User not found")
 
         if not verify_password(body.current_password, user.password_hash):
-            raise HTTPException(
-                status_code=401, detail="Current password is incorrect"
-            )
+            raise HTTPException(status_code=401, detail="Current password is incorrect")
 
         user.password_hash = hash_password(body.new_password)
         await session.commit()

@@ -1,14 +1,17 @@
 """流式处理器 - 处理 LangGraph 的流式输出并转换为 SSE 格式"""
+
 import json
 import logging
-from typing import List, Dict, Any, AsyncGenerator, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
+
 from langchain_core.messages import (
-    AIMessageChunk,
-    ToolMessage,
-    HumanMessage,
     AIMessage,
+    AIMessageChunk,
+    HumanMessage,
+    ToolMessage,
     convert_to_openai_messages,
 )
+
 from canvasflow.config import settings
 
 logger = logging.getLogger(__name__)
@@ -28,11 +31,7 @@ class StreamProcessor:
         self.sent_tool_call_ids: set = set()
         self.recursion_limit = settings.recursion_limit
 
-    async def process_stream(
-        self,
-        agent: Any,
-        messages: List[Dict[str, Any]]
-    ) -> AsyncGenerator[str, None]:
+    async def process_stream(self, agent: Any, messages: List[Dict[str, Any]]) -> AsyncGenerator[str, None]:
         """处理整个流式响应"""
         try:
             logger.info(f"开始处理流式响应，消息数量: {len(messages)}")
@@ -63,7 +62,7 @@ class StreamProcessor:
                 async for chunk in agent.astream(
                     {"messages": langchain_messages},
                     {"recursion_limit": self.recursion_limit},
-                    stream_mode=["messages"]
+                    stream_mode=["messages"],
                 ):
                     chunk_count += 1
                     try:
@@ -85,13 +84,10 @@ class StreamProcessor:
 
         except Exception as e:
             import traceback
+
             logger.error(f"流式处理错误: {str(e)}")
             logger.error(traceback.format_exc())
-            error_event = {
-                "type": "error",
-                "error": str(e),
-                "traceback": traceback.format_exc()
-            }
+            error_event = {"type": "error", "error": str(e), "traceback": traceback.format_exc()}
             yield f"data: {json.dumps(error_event, ensure_ascii=False)}\n\n"
 
     async def _handle_chunk(self, chunk: Any) -> AsyncGenerator[str, None]:
@@ -109,7 +105,7 @@ class StreamProcessor:
                         for message in chunk_data:
                             async for event in self._handle_message_chunk(message):
                                 yield event
-                    elif hasattr(chunk_data, '__iter__') and not isinstance(chunk_data, str):
+                    elif hasattr(chunk_data, "__iter__") and not isinstance(chunk_data, str):
                         for message in chunk_data:
                             async for event in self._handle_message_chunk(message):
                                 yield event
@@ -125,12 +121,10 @@ class StreamProcessor:
                     yield event
         except Exception as e:
             import traceback
+
             logger.error(f"处理 chunk 时出错: {str(e)}")
             logger.error(traceback.format_exc())
-            error_event = {
-                "type": "error",
-                "error": f"处理chunk时出错: {str(e)}"
-            }
+            error_event = {"type": "error", "error": f"处理chunk时出错: {str(e)}"}
             yield f"data: {json.dumps(error_event, ensure_ascii=False)}\n\n"
 
     async def _handle_values_chunk(self, chunk_data: Dict[str, Any]) -> AsyncGenerator[str, None]:
@@ -154,7 +148,7 @@ class StreamProcessor:
                 event = {
                     "type": "tool_result",
                     "tool_call_id": message_chunk.tool_call_id,
-                    "content": message_chunk.content
+                    "content": message_chunk.content,
                 }
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
                 return
@@ -167,7 +161,9 @@ class StreamProcessor:
                     content_str = str(content) if not isinstance(content, str) else content
                     if content_str:
                         self.text_buffer += content_str
-                        if "\n" in self.text_buffer or (len(self.text_buffer) > 50 and any(p in self.text_buffer for p in "。！？.!?")):
+                        if "\n" in self.text_buffer or (
+                            len(self.text_buffer) > 50 and any(p in self.text_buffer for p in "。！？.!?")
+                        ):
                             log_content = self.text_buffer.replace("\n", " ")
                             if log_content.strip():
                                 logger.info(f"AI回答: {log_content}")
@@ -223,7 +219,7 @@ class StreamProcessor:
                                 "type": "tool_call",
                                 "id": tool_call_id,
                                 "name": tool_name,
-                                "arguments": final_args
+                                "arguments": final_args,
                             }
                             yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
@@ -265,7 +261,7 @@ class StreamProcessor:
                                                 "type": "tool_call",
                                                 "id": tc_id,
                                                 "name": tool_name,
-                                                "arguments": self.tool_call_args[tc_id]
+                                                "arguments": self.tool_call_args[tc_id],
                                             }
                                             yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
                                 except json.JSONDecodeError:
@@ -282,16 +278,14 @@ class StreamProcessor:
                                         "type": "tool_call",
                                         "id": tc_id,
                                         "name": tool_name,
-                                        "arguments": self.tool_call_args[tc_id]
+                                        "arguments": self.tool_call_args[tc_id],
                                     }
                                     yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
         except Exception as e:
             logger.error(f"处理消息chunk时出错: {str(e)}")
             import traceback
+
             logger.error(traceback.format_exc())
-            error_event = {
-                "type": "error",
-                "error": f"处理消息chunk时出错: {str(e)}"
-            }
+            error_event = {"type": "error", "error": f"处理消息chunk时出错: {str(e)}"}
             yield f"data: {json.dumps(error_event, ensure_ascii=False)}\n\n"

@@ -111,6 +111,3 @@ curl -X POST https://ark.cn-beijing.volces.com/api/v3/images/generations \
     "stream": true,
     "watermark": true
 }'
-
-
-

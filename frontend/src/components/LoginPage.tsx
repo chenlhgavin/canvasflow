@@ -1,25 +1,25 @@
-import { useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import './LoginPage.css'
+import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import './LoginPage.css';
 
 export default function LoginPage() {
-  const { login } = useAuth()
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const { login } = useAuth();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setSubmitting(true)
+    e.preventDefault();
+    setError('');
+    setSubmitting(true);
 
     try {
-      await login(username, password)
+      await login(username, password);
     } catch (err: any) {
-      setError(err.message || 'Login failed')
+      setError(err.message || 'Login failed');
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
   }
 
@@ -38,7 +38,7 @@ export default function LoginPage() {
               id="username"
               type="text"
               value={username}
-              onChange={e => setUsername(e.target.value)}
+              onChange={(e) => setUsername(e.target.value)}
               autoComplete="username"
               autoFocus
               required
@@ -51,7 +51,7 @@ export default function LoginPage() {
               id="password"
               type="password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
               required
             />
@@ -67,5 +67,5 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

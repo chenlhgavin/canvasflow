@@ -1,0 +1,165 @@
+---
+interface Props {
+  slug: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  articleCount: number;
+  heroImage?: string;
+}
+
+const { slug, name, description, icon, color, articleCount, heroImage } = Astro.props;
+
+import { url } from '../../utils/path';
+---
+
+<a href={url(`/topics/${slug}`)} class="topic-card">
+  {heroImage && (
+    <div class="topic-thumbnail">
+      <img src={url(heroImage)} alt={name} loading="lazy" />
+      <div class="topic-thumbnail-overlay" />
+    </div>
+  )}
+  <div class="topic-content">
+    <div class="topic-icon" style={`background: ${color}15; color: ${color}`}>
+      {icon}
+    </div>
+    <h3 class="topic-name">{name}</h3>
+    <p class="topic-description">{description}</p>
+    <div class="topic-meta">
+      <span class="topic-count" style={`color: ${color}`}>
+        {articleCount > 0 ? `${articleCount} 篇文章` : '即将更新'}
+      </span>
+      <span class="topic-arrow">→</span>
+    </div>
+  </div>
+</a>
+
+<style>
+  .topic-card {
+    display: block;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: all var(--duration-normal) var(--ease-out);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .topic-thumbnail {
+    position: relative;
+    width: 100%;
+    height: 160px;
+    overflow: hidden;
+  }
+
+  .topic-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .topic-card:hover .topic-thumbnail img {
+    transform: scale(1.08);
+  }
+
+  .topic-thumbnail-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.15) 100%);
+  }
+
+  .topic-content {
+    padding: var(--space-8);
+  }
+
+  .topic-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--cursor-purple));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .topic-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .topic-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .topic-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: var(--space-4);
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .topic-card:hover .topic-icon {
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  .topic-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+    color: var(--text-primary);
+  }
+
+  .topic-description {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-4);
+  }
+
+  .topic-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .topic-count {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .topic-arrow {
+    font-size: 1.5rem;
+    color: var(--primary);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .topic-card:hover .topic-arrow {
+    transform: translateX(4px);
+  }
+
+  :global([data-theme="motherduck"]) .topic-card {
+    border: 2px solid var(--text-primary);
+    border-radius: 0;
+    box-shadow: var(--shadow-sm);
+  }
+
+  :global([data-theme="motherduck"]) .topic-card:hover {
+    transform: translate(4px, -4px);
+    box-shadow: rgb(56, 56, 56) -8px 8px 0px 0px;
+  }
+
+  :global([data-theme="motherduck"]) .topic-card::before {
+    display: none;
+  }
+</style>

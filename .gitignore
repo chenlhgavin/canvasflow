@@ -14,6 +14,7 @@ build/
 # Node
 node_modules/
 dist/
+.astro/
 
 # IDE
 .idea/
@@ -25,6 +26,9 @@ dist/
 # Claude
 .claude/
 .chats/
+
+# Design screenshots (large binaries)
+specs/design/*/screenshots/
 
 # Logs
 *.log

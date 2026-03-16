@@ -1,0 +1,181 @@
+---
+// Theme Switcher Component
+// 简洁的主题切换按钮，点击直接在 Apple / MotherDuck 之间切换
+---
+
+<button
+  class="theme-toggle"
+  id="theme-toggle"
+  aria-label="切换主题"
+  title="切换设计风格"
+>
+  <span class="toggle-track">
+    <span class="toggle-thumb" id="toggle-thumb">
+      <svg class="toggle-icon icon-apple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="4"/>
+        <circle cx="12" cy="12" r="3"/>
+        <line x1="12" y1="3" x2="12" y2="6"/>
+        <line x1="12" y1="18" x2="12" y2="21"/>
+        <line x1="3" y1="12" x2="6" y2="12"/>
+        <line x1="18" y1="12" x2="21" y2="12"/>
+      </svg>
+      <svg class="toggle-icon icon-duck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 5.5c0-1.5-1-3-3-3s-3 1.5-3 3c0 1 .5 2 1.5 2.5"/>
+        <circle cx="8.5" cy="4.5" r="0.5" fill="currentColor"/>
+        <path d="M5 8c-2 1-3 3-3 5.5C2 17 5 20 10 20h4c5 0 8-3 8-6.5S20 8 17 7"/>
+        <path d="M7 8c1-1 3-1.5 5-1.5s4 .5 5 1.5"/>
+      </svg>
+    </span>
+  </span>
+  <span class="toggle-label" id="toggle-label">Apple</span>
+</button>
+
+<style>
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--text-primary);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .toggle-track {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    background: var(--surface);
+    border: 1.5px solid var(--border-color);
+    border-radius: 13px;
+    transition: background var(--duration-normal) var(--ease-out),
+                border-color var(--duration-normal) var(--ease-out);
+    flex-shrink: 0;
+  }
+
+  .theme-toggle:hover .toggle-track {
+    border-color: var(--primary);
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: var(--background);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--duration-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .toggle-icon {
+    width: 12px;
+    height: 12px;
+    position: absolute;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .icon-apple {
+    opacity: 1;
+  }
+
+  .icon-duck {
+    opacity: 0;
+  }
+
+  .toggle-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color var(--duration-fast) var(--ease-out);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .theme-toggle:hover .toggle-label {
+    color: var(--text-primary);
+  }
+
+  /* MotherDuck 激活态 */
+  :global([data-theme="motherduck"]) .toggle-track {
+    background: var(--accent);
+    border-color: var(--text-primary);
+    border-width: 2px;
+  }
+
+  :global([data-theme="motherduck"]) .toggle-thumb {
+    transform: translateX(22px);
+    background: var(--text-primary);
+  }
+
+  :global([data-theme="motherduck"]) .toggle-icon {
+    color: var(--accent);
+  }
+
+  :global([data-theme="motherduck"]) .icon-apple {
+    opacity: 0;
+  }
+
+  :global([data-theme="motherduck"]) .icon-duck {
+    opacity: 1;
+  }
+
+  :global([data-theme="motherduck"]) .toggle-label {
+    font-family: var(--font-display);
+  }
+
+  :global([data-theme="motherduck"]) .theme-toggle:hover .toggle-track {
+    border-color: var(--text-primary);
+    box-shadow: rgb(56, 56, 56) -2px 2px 0px 0px;
+  }
+
+  /* 移动端 */
+  @media (max-width: 768px) {
+    .toggle-label {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const themeToggle = document.getElementById('theme-toggle');
+  const toggleLabel = document.getElementById('toggle-label');
+
+  const themeNames: Record<string, string> = {
+    'apple': 'Apple',
+    'motherduck': 'Duck'
+  };
+
+  const themes = ['apple', 'motherduck'];
+
+  function getSavedTheme(): string {
+    return localStorage.getItem('theme') || 'apple';
+  }
+
+  function applyTheme(theme: string): void {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+
+    if (toggleLabel) {
+      toggleLabel.textContent = themeNames[theme] || theme;
+    }
+  }
+
+  // 页面加载时初始化主题
+  applyTheme(getSavedTheme());
+
+  // 点击切换主题
+  themeToggle?.addEventListener('click', () => {
+    const current = getSavedTheme();
+    const currentIdx = themes.indexOf(current);
+    const nextIdx = (currentIdx + 1) % themes.length;
+    applyTheme(themes[nextIdx]);
+  });
+</script>

@@ -1,0 +1,239 @@
+---
+interface Props {
+  title: string;
+  subtitle: string;
+  cta?: {
+    text: string;
+    href: string;
+  };
+  secondaryCta?: {
+    text: string;
+    href: string;
+  };
+  gradient?: boolean;
+  backgroundImage?: string;
+}
+
+const { title, subtitle, cta, secondaryCta, gradient = true, backgroundImage } = Astro.props;
+---
+
+<section class={`hero ${gradient ? 'gradient' : ''} ${backgroundImage ? 'has-bg-image' : ''}`}>
+  {backgroundImage && (
+    <div class="hero-bg-image">
+      <img src={backgroundImage} alt="" />
+    </div>
+  )}
+  <div class="container">
+    <div class="hero-content">
+      <h1 class="hero-title fade-in">
+        {title}
+      </h1>
+      <p class="hero-subtitle slide-up">
+        {subtitle}
+      </p>
+      {(cta || secondaryCta) && (
+        <div class="hero-actions scale-in">
+          {cta && (
+            <a href={cta.href} class="btn btn-primary btn-lg">
+              {cta.text}
+            </a>
+          )}
+          {secondaryCta && (
+            <a href={secondaryCta.href} class="btn btn-secondary btn-lg">
+              {secondaryCta.text}
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: var(--space-24) 0;
+  }
+
+  .hero.gradient {
+    background: linear-gradient(135deg,
+      rgba(139, 92, 246, 0.1) 0%,
+      rgba(59, 130, 246, 0.1) 50%,
+      rgba(16, 185, 129, 0.1) 100%
+    );
+  }
+
+  .hero-bg-image {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .hero-bg-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+  }
+
+  .hero.has-bg-image::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.45) 0%,
+      rgba(0, 0, 0, 0.35) 40%,
+      rgba(0, 0, 0, 0.5) 100%
+    );
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .hero-bg-image img {
+      opacity: 0.5;
+    }
+
+    .hero.has-bg-image::before {
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.55) 0%,
+        rgba(0, 0, 0, 0.45) 40%,
+        rgba(0, 0, 0, 0.6) 100%
+      );
+    }
+  }
+
+  .hero-content {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: var(--space-6);
+    background: linear-gradient(135deg,
+      var(--text-primary) 0%,
+      var(--primary) 50%,
+      var(--cursor-purple) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-12);
+    line-height: 1.6;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* 有背景图时，文字切换为亮色以保证可读性 */
+  .hero.has-bg-image .hero-title {
+    background: linear-gradient(135deg,
+      #ffffff 0%,
+      #e0e7ff 50%,
+      #c4b5fd 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  }
+
+  .hero.has-bg-image .hero-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .hero.has-bg-image .btn-primary {
+    background-color: rgba(255, 255, 255, 0.95);
+    color: var(--primary);
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .hero.has-bg-image .btn-primary:hover {
+    background-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  }
+
+  .hero.has-bg-image .btn-secondary {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(8px);
+  }
+
+  .hero.has-bg-image .btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      min-height: 80vh;
+      padding: var(--space-16) 0;
+    }
+
+    .hero-title {
+      margin-bottom: var(--space-4);
+    }
+
+    .hero-subtitle {
+      margin-bottom: var(--space-8);
+    }
+
+    .hero-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .btn-lg {
+      width: 100%;
+    }
+  }
+
+  /* Animation delays for stagger effect */
+  .fade-in {
+    animation-delay: 0.2s;
+  }
+
+  .slide-up {
+    animation-delay: 0.4s;
+  }
+
+  .scale-in {
+    animation-delay: 0.6s;
+  }
+</style>

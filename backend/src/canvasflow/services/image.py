@@ -1,4 +1,5 @@
 """图片处理管线 - 下载、sRGB 归一化、上传到 MinIO"""
+
 import base64
 import logging
 import uuid
@@ -8,7 +9,6 @@ from urllib.parse import urlparse
 
 import requests
 
-from canvasflow.config import settings
 from canvasflow.storage import get_object, upload_object
 
 logger = logging.getLogger(__name__)
@@ -40,13 +40,13 @@ def download_and_save_image(image_url: str, prompt: str = "") -> str:
         unique_id = str(uuid.uuid4())[:8]
         safe_prompt = "".join(c if c.isalnum() or c in (" ", "-", "_") else "" for c in prompt[:30])
         safe_prompt = safe_prompt.replace(" ", "_")
-        filename = f"volcano_{timestamp}_{unique_id}_{safe_prompt}" if safe_prompt else f"volcano_{timestamp}_{unique_id}"
+        filename = (
+            f"volcano_{timestamp}_{unique_id}_{safe_prompt}" if safe_prompt else f"volcano_{timestamp}_{unique_id}"
+        )
 
         # sRGB 归一化 + 格式选择
         image_data = response.content
         content_type = "image/png"
-        saved_via_pillow = False
-
         if Image is not None:
             try:
                 im = Image.open(BytesIO(image_data))
@@ -59,7 +59,11 @@ def download_and_save_image(image_url: str, prompt: str = "") -> str:
                         try:
                             src_profile = ImageCms.ImageCmsProfile(BytesIO(icc))
                             dst_profile = ImageCms.createProfile("sRGB")
-                            output_mode = "RGBA" if im.mode in ("RGBA", "LA") or "transparency" in getattr(im, "info", {}) else "RGB"
+                            output_mode = (
+                                "RGBA"
+                                if im.mode in ("RGBA", "LA") or "transparency" in getattr(im, "info", {})
+                                else "RGB"
+                            )
                             im = ImageCms.profileToProfile(im, src_profile, dst_profile, outputMode=output_mode)
                         except Exception:
                             pass
@@ -97,7 +101,6 @@ def download_and_save_image(image_url: str, prompt: str = "") -> str:
                     content_type = "image/png"
 
                 image_data = buf.getvalue()
-                saved_via_pillow = True
                 logger.info("sRGB 归一化完成")
             except Exception as e:
                 logger.warning(f"sRGB 归一化失败，使用原始数据: {e}")
@@ -115,6 +118,7 @@ def download_and_save_image(image_url: str, prompt: str = "") -> str:
     except Exception as e:
         logger.error(f"下载图片失败: {str(e)}")
         import traceback
+
         logger.error(traceback.format_exc())
         return image_url
 
@@ -123,7 +127,7 @@ def prepare_image_input(image_url: str) -> str:
     """从 MinIO 读取图片并转换为 Base64"""
     # 处理 /storage/ 路径
     if image_url.startswith("/storage/"):
-        object_key = image_url[len("/storage/"):]
+        object_key = image_url[len("/storage/") :]
         logger.info(f"从 MinIO 读取: {object_key}")
         image_data = get_object(object_key)
 

@@ -1,4 +1,5 @@
 """认证核心服务：密码哈希、JWT、CSRF、默认用户"""
+
 from __future__ import annotations
 
 import hmac
@@ -8,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 
 from canvasflow.config import Settings
 from canvasflow.database import async_session
@@ -27,9 +28,7 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 async def verify_credentials(username: str, password: str) -> User | None:
     async with async_session() as session:
-        result = await session.execute(
-            select(User).where(User.username == username)
-        )
+        result = await session.execute(select(User).where(User.username == username))
         user = result.scalar_one_or_none()
         if user is None:
             return None

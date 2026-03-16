@@ -50,19 +50,24 @@ App.tsx
 ## 关键交互
 
 ### SSE 消息处理
+
 前端通过 `fetch` + `ReadableStream` 消费 `POST /api/chat` 的 SSE 流：
+
 - `delta` → 追加 AI 文本 (打字机效果)
 - `tool_call` → 显示工具状态卡片 (蓝色脉冲动画)
 - `tool_result` → 解析 `image_url`，内嵌图片 + 调用 `addImage()`
 - `[DONE]` → 保存消息历史和画布数据
 
 ### 画布集成
+
 `ExcalidrawCanvas` 通过 `useImperativeHandle` 暴露 `addImage(url, title)`：
+
 - 两层元素: 白色 `rectangle` 底板 + `image` 上层
 - 自动布局算法: `computeNextPosition()`，每行最多 4 张，间距 20px
 - 图片缩放: 最大宽度 300px，按比例缩放
 
 ### 图片上传
+
 - 点击 📎 或粘贴图片 → `POST /api/upload-image` (multipart)
 - 预览 80x80 缩略图，发送时携带 `imageUrls` 列表
 
@@ -90,3 +95,4 @@ server: {
 - 画布操作通过 `useImperativeHandle` 暴露命令式 API
 - 消息气泡: 用户右对齐 (蓝紫渐变)，AI 左对齐 (半透明暗色)
 - 动画: CSS keyframes (`fadeIn`, `pulse-dot`, `breathing`, `shimmer`)
+- 代码格式化用 **Prettier** (项目根目录 `.prettierrc` 配置)，pre-commit 钩子自动执行

@@ -4,8 +4,10 @@ Revision ID: 001_add_users
 Revises:
 Create Date: 2026-03-14
 """
-from alembic import op
+
 import sqlalchemy as sa
+
+from alembic import op
 
 revision = "001_add_users"
 down_revision = None

@@ -1,18 +1,22 @@
 """Agent 服务 - 创建 LangGraph ReAct Agent 并处理流式输出"""
+
 import json
 import logging
-from typing import List, Dict, Any, AsyncGenerator, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
+
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
+
 from canvasflow.config import settings
 from canvasflow.services.stream import StreamProcessor
-from canvasflow.tools.generate import generate_image_tool
 from canvasflow.tools.edit import edit_image_tool
+from canvasflow.tools.generate import generate_image_tool
 
 logger = logging.getLogger(__name__)
 
 # 系统提示词 - 精简版，仅保留图片创作
-SYSTEM_PROMPT = """你是 CanvasFlow，一个专注于 AI 图片创作的智能助手。你能够理解用户的创作意图，自主生成和编辑图片，所有结果会自动呈现在无限画布上。
+SYSTEM_PROMPT = """你是 CanvasFlow，一个专注于 AI 图片创作的智能助手。\
+你能够理解用户的创作意图，自主生成和编辑图片，所有结果会自动呈现在无限画布上。
 
 <核心执行哲学>
 自主拆解：面对复杂需求，将其拆解为合理的执行步骤，逐步执行。
@@ -102,20 +106,14 @@ def create_agent():
 
     full_prompt = SYSTEM_PROMPT.format(tools_list_text=tools_list_text)
 
-    agent = create_react_agent(
-        name="canvasflow_image_agent",
-        model=model,
-        tools=tools,
-        prompt=full_prompt
-    )
+    agent = create_react_agent(name="canvasflow_image_agent", model=model, tools=tools, prompt=full_prompt)
 
     logger.info("Agent 创建成功")
     return agent
 
 
 async def process_chat_stream(
-    messages: List[Dict[str, Any]],
-    session_id: Optional[str] = None
+    messages: List[Dict[str, Any]], session_id: Optional[str] = None
 ) -> AsyncGenerator[str, None]:
     """处理聊天流式响应"""
     try:
@@ -139,11 +137,12 @@ async def process_chat_stream(
         return
     except Exception as e:
         import traceback
+
         logger.error(f"处理聊天流时出错: {str(e)}")
         logger.error(traceback.format_exc())
         try:
             error_event = {"type": "error", "error": str(e)}
             yield f"data: {json.dumps(error_event, ensure_ascii=False)}\n\n"
             yield "data: [DONE]\n\n"
-        except:
+        except Exception:
             pass

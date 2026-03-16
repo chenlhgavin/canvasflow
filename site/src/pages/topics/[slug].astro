@@ -1,0 +1,130 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HeroSection from '../../components/sections/HeroSection.astro';
+import ArticleCard from '../../components/cards/ArticleCard.astro';
+import Breadcrumb from '../../components/content/Breadcrumb.astro';
+import { topics, getTopic } from '../../data/topics';
+import { url } from '../../utils/path';
+import type { GetStaticPaths } from 'astro';
+
+export const getStaticPaths = (() => {
+  return topics.map((topic) => ({
+    params: { slug: topic.slug },
+  }));
+}) satisfies GetStaticPaths;
+
+const { slug } = Astro.params;
+const topic = getTopic(slug);
+
+if (!topic) {
+  return Astro.redirect(url('/'));
+}
+
+const breadcrumbItems = [
+  { name: topic.name },
+];
+---
+
+<BaseLayout
+  title={`${topic.icon} ${topic.name}`}
+  description={topic.description}
+>
+  <HeroSection
+    title={`${topic.icon} ${topic.name}`}
+    subtitle={topic.description}
+    gradient={true}
+    backgroundImage={topic.heroImage ? url(topic.heroImage) : undefined}
+  />
+
+  <section class="section">
+    <div class="container">
+      <Breadcrumb items={breadcrumbItems} />
+
+      {topic.articles.length > 0 ? (
+        <div class="articles-list">
+          <div class="articles-header">
+            <h2 class="articles-count">
+              共 {topic.articles.length} 篇文章
+            </h2>
+          </div>
+          <div class="articles-grid">
+            {topic.articles.map((article) => (
+              <ArticleCard
+                slug={article.slug}
+                title={article.title}
+                summary={article.summary}
+                tags={article.tags}
+                date={article.date}
+                readingTime={article.readingTime}
+                topicSlug={topic.slug}
+                image={article.image}
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div class="empty-state">
+          <div class="empty-icon">{topic.icon}</div>
+          <h2 class="empty-title">{topic.name} 文章正在筹备中</h2>
+          <p class="empty-description">
+            该主题的文章正在撰写中，敬请期待！
+          </p>
+          <a href={url('/')} class="btn btn-secondary">返回首页</a>
+        </div>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .section {
+    padding: var(--space-12) 0 var(--space-24);
+  }
+
+  .articles-header {
+    margin: var(--space-8) 0;
+  }
+
+  .articles-count {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .articles-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 768px) {
+    .articles-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-20) 0;
+  }
+
+  .empty-icon {
+    font-size: 5rem;
+    margin-bottom: var(--space-6);
+  }
+
+  .empty-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+  }
+
+  .empty-description {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: 0 auto var(--space-8);
+    line-height: 1.6;
+  }
+</style>

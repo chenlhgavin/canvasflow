@@ -1,0 +1,126 @@
+---
+interface Tab {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  tabs: Tab[];
+  defaultTab?: string;
+}
+
+const { tabs, defaultTab } = Astro.props;
+---
+
+<div class="tabs-view">
+  <div class="tabs-header">
+    {tabs.map((tab, index) => (
+      <button
+        class={`tab-button ${index === 0 && !defaultTab ? 'active' : defaultTab === tab.id ? 'active' : ''}`}
+        data-tab={tab.id}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
+  <div class="tabs-content">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .tabs-view {
+    width: 100%;
+  }
+
+  .tabs-header {
+    display: flex;
+    gap: var(--space-2);
+    border-bottom: 2px solid var(--surface);
+    margin-bottom: var(--space-8);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-button {
+    padding: var(--space-4) var(--space-6);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--duration-normal) var(--ease-out);
+    margin-bottom: -2px;
+  }
+
+  .tab-button:hover {
+    color: var(--text-primary);
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .tab-button:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+
+  .tab-button.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+  }
+
+  .tabs-content {
+    position: relative;
+  }
+
+  .tabs-content :global(.tab-panel) {
+    display: none;
+  }
+
+  .tabs-content :global(.tab-panel.active) {
+    display: block;
+    animation: fadeIn var(--duration-normal) var(--ease-out);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabsViews = document.querySelectorAll('.tabs-view');
+
+    tabsViews.forEach((tabsView) => {
+      const buttons = tabsView.querySelectorAll('.tab-button');
+      const panels = tabsView.querySelectorAll('.tab-panel');
+
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const tabId = button.getAttribute('data-tab');
+
+          // Remove active class from all buttons and panels
+          buttons.forEach((btn) => btn.classList.remove('active'));
+          panels.forEach((panel) => panel.classList.remove('active'));
+
+          // Add active class to clicked button and corresponding panel
+          button.classList.add('active');
+          const activePanel = tabsView.querySelector(`.tab-panel[data-tab="${tabId}"]`);
+          if (activePanel) {
+            activePanel.classList.add('active');
+          }
+        });
+      });
+    });
+  });
+</script>

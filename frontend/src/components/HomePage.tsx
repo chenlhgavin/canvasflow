@@ -1,73 +1,83 @@
-import { useEffect, useMemo, useState, useRef } from 'react'
-import './HomePage.css'
-import { ArrowRight, Clock, LayoutGrid, Search, Paperclip, X, Sun, Moon, Trash2 } from 'lucide-react'
-import UserMenu from './UserMenu'
-import { apiFetch } from '../utils/api'
+import { useEffect, useMemo, useState, useRef } from 'react';
+import './HomePage.css';
+import {
+  ArrowRight,
+  Clock,
+  LayoutGrid,
+  Search,
+  Paperclip,
+  X,
+  Sun,
+  Moon,
+  Trash2,
+} from 'lucide-react';
+import UserMenu from './UserMenu';
+import { apiFetch } from '../utils/api';
 
-type ThemeMode = 'dark' | 'light'
+type ThemeMode = 'dark' | 'light';
 
 type CanvasSummary = {
-  id: string
-  name?: string
-  createdAt?: number
-  images?: unknown[]
-  messages?: unknown[]
+  id: string;
+  name?: string;
+  createdAt?: number;
+  images?: unknown[];
+  messages?: unknown[];
   data?: {
-    elements?: any[]
-    files?: Record<string, { dataURL?: string; mimeType?: string }>
-  }
-}
+    elements?: any[];
+    files?: Record<string, { dataURL?: string; mimeType?: string }>;
+  };
+};
 
 function getCanvasIdFromUrl() {
   try {
-    const url = new URL(window.location.href)
-    return url.searchParams.get('canvasId') || ''
+    const url = new URL(window.location.href);
+    return url.searchParams.get('canvasId') || '';
   } catch {
-    return ''
+    return '';
   }
 }
 
 function setCanvasIdToUrl(canvasId: string) {
-  const url = new URL(window.location.href)
-  url.searchParams.set('canvasId', canvasId)
-  window.history.pushState({}, '', url.toString())
-  window.dispatchEvent(new PopStateEvent('popstate'))
+  const url = new URL(window.location.href);
+  url.searchParams.set('canvasId', canvasId);
+  window.history.pushState({}, '', url.toString());
+  window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
 function clearCanvasIdFromUrl() {
-  const url = new URL(window.location.href)
-  url.searchParams.delete('canvasId')
-  window.history.pushState({}, '', url.toString())
-  window.dispatchEvent(new PopStateEvent('popstate'))
+  const url = new URL(window.location.href);
+  url.searchParams.delete('canvasId');
+  window.history.pushState({}, '', url.toString());
+  window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
 function pickThumbnails(canvas: CanvasSummary, max = 4): string[] {
-  const files = canvas.data?.files || {}
+  const files = canvas.data?.files || {};
   const urls = Object.values(files)
     .map((f) => (typeof f?.dataURL === 'string' ? f.dataURL : null))
-    .filter((u): u is string => Boolean(u))
+    .filter((u): u is string => Boolean(u));
   // 去重 & 截断（最多展示 3 张拼贴预览）
-  const uniq = Array.from(new Set(urls))
-  return uniq.slice(0, max)
+  const uniq = Array.from(new Set(urls));
+  return uniq.slice(0, max);
 }
 
 function countImages(canvas: CanvasSummary): number {
-  const els = canvas.data?.elements || []
-  const fromElements = els.filter((e) => e && !e.isDeleted && e.type === 'image').length
-  if (fromElements) return fromElements
-  return Array.isArray(canvas.images) ? canvas.images.length : 0
+  const els = canvas.data?.elements || [];
+  const fromElements = els.filter((e) => e && !e.isDeleted && e.type === 'image').length;
+  if (fromElements) return fromElements;
+  return Array.isArray(canvas.images) ? canvas.images.length : 0;
 }
 
 function extractTextPreview(canvas: CanvasSummary, maxLen = 84): string {
-  const raw = Array.isArray(canvas.messages) ? canvas.messages : []
+  const raw = Array.isArray(canvas.messages) ? canvas.messages : [];
   // 从最新开始找一条"有可读文本"的消息
   for (let i = raw.length - 1; i >= 0; i--) {
-    const m = raw[i] as any
-    if (!m || typeof m !== 'object') continue
-    const post = typeof m.postToolContent === 'string' ? m.postToolContent : ''
-    const content = typeof m.content === 'string' ? m.content : ''
-    let text = (post || content || '').trim()
-    if (!text) continue
+    const m = raw[i] as any;
+    if (!m || typeof m !== 'object') continue;
+    const post = typeof m.postToolContent === 'string' ? m.postToolContent : '';
+    const content = typeof m.content === 'string' ? m.content : '';
+    let text = (post || content || '').trim();
+    if (!text) continue;
 
     // 清理掉图片标记/URL 列表，保留纯文本
     const lines = text
@@ -76,159 +86,167 @@ function extractTextPreview(canvas: CanvasSummary, maxLen = 84): string {
       .filter(Boolean)
       .filter((l: string) => !l.startsWith('[图片:'))
       .filter((l: string) => l !== 'Generated Image:')
-      .filter((l: string) => !(l.startsWith('- ') && (l.includes('/storage/') || l.includes('http://') || l.includes('https://'))))
+      .filter(
+        (l: string) =>
+          !(
+            l.startsWith('- ') &&
+            (l.includes('/storage/') || l.includes('http://') || l.includes('https://'))
+          )
+      );
 
-    text = lines.join(' ').replace(/\s+/g, ' ').trim()
-    if (!text) continue
+    text = lines.join(' ').replace(/\s+/g, ' ').trim();
+    if (!text) continue;
 
-    if (text.length > maxLen) return text.slice(0, maxLen) + '...'
-    return text
+    if (text.length > maxLen) return text.slice(0, maxLen) + '...';
+    return text;
   }
-  return ''
+  return '';
 }
 
 export default function HomePage({
   theme,
   onToggleTheme,
 }: {
-  theme: ThemeMode
-  onToggleTheme: () => void
+  theme: ThemeMode;
+  onToggleTheme: () => void;
 }) {
-  const [projects, setProjects] = useState<CanvasSummary[]>([])
-  const [loading, setLoading] = useState(true)
-  const [query, setQuery] = useState('')
-  const [prompt, setPrompt] = useState('')
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]) // 上传的图片URL列表
-  const [creating, setCreating] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [projects, setProjects] = useState<CanvasSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [prompt, setPrompt] = useState('');
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]); // 上传的图片URL列表
+  const [creating, setCreating] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // If already has canvasId (e.g. user pasted link), redirect to board
-    const existing = getCanvasIdFromUrl()
-    if (existing) return
-    clearCanvasIdFromUrl()
-  }, [])
+    const existing = getCanvasIdFromUrl();
+    if (existing) return;
+    clearCanvasIdFromUrl();
+  }, []);
 
   useEffect(() => {
     const load = async () => {
       try {
-        setLoading(true)
-        const res = await apiFetch('/api/canvases')
-        if (!res.ok) throw new Error('Failed to load projects')
-        const data = (await res.json()) as CanvasSummary[]
-        setProjects(Array.isArray(data) ? data : [])
+        setLoading(true);
+        const res = await apiFetch('/api/canvases');
+        if (!res.ok) throw new Error('Failed to load projects');
+        const data = (await res.json()) as CanvasSummary[];
+        setProjects(Array.isArray(data) ? data : []);
       } catch (e) {
-        console.error(e)
-        setProjects([])
+        console.error(e);
+        setProjects([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    load()
-  }, [])
+    };
+    load();
+  }, []);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return projects
-    return projects.filter((p) => (p.name || '').toLowerCase().includes(q) || p.id.toLowerCase().includes(q))
-  }, [projects, query])
+    const q = query.trim().toLowerCase();
+    if (!q) return projects;
+    return projects.filter(
+      (p) => (p.name || '').toLowerCase().includes(q) || p.id.toLowerCase().includes(q)
+    );
+  }, [projects, query]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('只支持图片文件')
-      return
+      alert('只支持图片文件');
+      return;
     }
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      const formData = new FormData();
+      formData.append('file', file);
 
       const response = await apiFetch('/api/upload-image', {
         method: 'POST',
         body: formData,
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('上传失败')
+        throw new Error('上传失败');
       }
 
-      const data = await response.json()
-      setUploadedImages(prev => [...prev, data.url])
+      const data = await response.json();
+      setUploadedImages((prev) => [...prev, data.url]);
     } catch (error) {
-      console.error('文件上传失败:', error)
-      alert('文件上传失败，请重试')
+      console.error('文件上传失败:', error);
+      alert('文件上传失败，请重试');
     } finally {
       // 清空文件选择，允许重复选择同一文件
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+        fileInputRef.current.value = '';
       }
     }
-  }
+  };
 
   const removeUploadedImage = (index: number) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index))
-  }
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const deleteProject = async (e: React.MouseEvent, projectId: string) => {
-    e.stopPropagation() // 阻止点击卡片跳转
-    if (!confirm('确定要删除这个项目吗？')) return
+    e.stopPropagation(); // 阻止点击卡片跳转
+    if (!confirm('确定要删除这个项目吗？')) return;
 
     try {
-      await apiFetch(`/api/canvases/${projectId}`, { method: 'DELETE' })
-      setProjects(prev => prev.filter(p => p.id !== projectId))
+      await apiFetch(`/api/canvases/${projectId}`, { method: 'DELETE' });
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
     } catch (e) {
-      console.error('删除项目失败', e)
-      alert('删除失败，请重试')
+      console.error('删除项目失败', e);
+      alert('删除失败，请重试');
     }
-  }
+  };
 
   const createProjectAndEnter = async (firstPrompt?: string, images?: string[]) => {
-    if (creating) return
-    setCreating(true)
+    if (creating) return;
+    setCreating(true);
     try {
-      const id = `canvas-${Date.now()}`
-      const nameFromPrompt = (firstPrompt || '').trim().slice(0, 18)
+      const id = `canvas-${Date.now()}`;
+      const nameFromPrompt = (firstPrompt || '').trim().slice(0, 18);
       const payload: CanvasSummary = {
         id,
         name: nameFromPrompt ? `项目：${nameFromPrompt}` : `项目 ${projects.length + 1}`,
         createdAt: Date.now(),
         images: [],
-        data: { elements: [], files: {}, },
+        data: { elements: [], files: {} },
         messages: [],
-      }
+      };
       await apiFetch('/api/canvases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-      })
+      });
 
       // 构建消息内容：文本 + 图片URL
-      let messageContent = (firstPrompt || '').trim()
+      let messageContent = (firstPrompt || '').trim();
       if (images && images.length > 0) {
-        const imageTexts = images.map(url => `[图片: ${url}]`).join('\n')
+        const imageTexts = images.map((url) => `[图片: ${url}]`).join('\n');
         if (messageContent) {
-          messageContent = `${messageContent}\n\n${imageTexts}`
+          messageContent = `${messageContent}\n\n${imageTexts}`;
         } else {
-          messageContent = imageTexts
+          messageContent = imageTexts;
         }
       }
 
       if (messageContent) {
         // 存储完整的消息内容（包括图片）
-        sessionStorage.setItem(`pending_prompt:${id}`, messageContent)
+        sessionStorage.setItem(`pending_prompt:${id}`, messageContent);
         // 同时存储图片URL列表，用于在对话界面显示
         if (images && images.length > 0) {
-          sessionStorage.setItem(`pending_images:${id}`, JSON.stringify(images))
+          sessionStorage.setItem(`pending_images:${id}`, JSON.stringify(images));
         }
       }
-      setCanvasIdToUrl(id)
+      setCanvasIdToUrl(id);
     } finally {
-      setCreating(false)
+      setCreating(false);
     }
-  }
+  };
 
   return (
     <div className="home">
@@ -254,7 +272,12 @@ export default function HomePage({
 
       <main className="home__main">
         <section className="home__hero">
-          <img src="/icons/hero-illustration.png" alt="" className="home__heroIllustration" aria-hidden="true" />
+          <img
+            src="/icons/hero-illustration.png"
+            alt=""
+            className="home__heroIllustration"
+            aria-hidden="true"
+          />
           <h1 className="home__heroTitle">从问题开始，进入画板创作</h1>
           <p className="home__heroDesc">
             输入你的想法，我们会为你创建一个项目并自动进入画板。生成的图片会按顺序落到画布里。
@@ -303,51 +326,51 @@ export default function HomePage({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     // 回车键（非 Shift+Enter）触发创建项目
-                    e.preventDefault()
+                    e.preventDefault();
                     if (!creating && (prompt.trim() || uploadedImages.length > 0)) {
-                      createProjectAndEnter(prompt, uploadedImages)
+                      createProjectAndEnter(prompt, uploadedImages);
                     }
                   }
                 }}
                 onPaste={(e) => {
                   try {
-                    const items = e.clipboardData?.items
-                    if (!items) return
+                    const items = e.clipboardData?.items;
+                    if (!items) return;
 
                     for (let i = 0; i < items.length; i++) {
-                      const item = items[i]
+                      const item = items[i];
                       if (item.type.indexOf('image') !== -1) {
-                        e.preventDefault()
-                        const file = item.getAsFile()
-                        if (!file) continue
+                        e.preventDefault();
+                        const file = item.getAsFile();
+                        if (!file) continue;
 
                         // 异步上传，但不阻塞
-                        ;(async () => {
+                        (async () => {
                           try {
-                            const formData = new FormData()
-                            formData.append('file', file)
+                            const formData = new FormData();
+                            formData.append('file', file);
 
                             const response = await apiFetch('/api/upload-image', {
                               method: 'POST',
                               body: formData,
-                            })
+                            });
 
                             if (!response.ok) {
-                              throw new Error('上传失败')
+                              throw new Error('上传失败');
                             }
 
-                            const data = await response.json()
-                            setUploadedImages(prev => [...prev, data.url])
+                            const data = await response.json();
+                            setUploadedImages((prev) => [...prev, data.url]);
                           } catch (error) {
-                            console.error('图片粘贴上传失败:', error)
-                            alert('图片粘贴上传失败，请重试')
+                            console.error('图片粘贴上传失败:', error);
+                            alert('图片粘贴上传失败，请重试');
                           }
-                        })()
-                        break // 只处理第一个文件
+                        })();
+                        break; // 只处理第一个文件
                       }
                     }
                   } catch (error) {
-                    console.error('粘贴处理错误:', error)
+                    console.error('粘贴处理错误:', error);
                   }
                 }}
                 rows={3}
@@ -392,15 +415,12 @@ export default function HomePage({
           ) : (
             <div className="home__grid">
               {filtered.map((p) => {
-                const thumbs = pickThumbnails(p)
-                const created = p.createdAt ? new Date(p.createdAt).toLocaleString() : ''
-                const n = countImages(p)
-                const preview = extractTextPreview(p)
+                const thumbs = pickThumbnails(p);
+                const created = p.createdAt ? new Date(p.createdAt).toLocaleString() : '';
+                const n = countImages(p);
+                const preview = extractTextPreview(p);
                 return (
-                  <div
-                    key={p.id}
-                    className="home__card-wrapper"
-                  >
+                  <div key={p.id} className="home__card-wrapper">
                     <button
                       className="home__card"
                       onClick={() => setCanvasIdToUrl(p.id)}
@@ -413,7 +433,12 @@ export default function HomePage({
                             aria-hidden="true"
                           >
                             {thumbs.slice(0, 4).map((src, idx) => (
-                              <img key={`${p.id}:${idx}`} className="home__thumbImg" src={src} alt="" />
+                              <img
+                                key={`${p.id}:${idx}`}
+                                className="home__thumbImg"
+                                src={src}
+                                alt=""
+                              />
                             ))}
                           </div>
                         ) : (
@@ -449,7 +474,7 @@ export default function HomePage({
                       </div>
                     </button>
                   </div>
-                )
+                );
               })}
               {filtered.length === 0 && (
                 <div className="home__empty">
@@ -461,5 +486,5 @@ export default function HomePage({
         </section>
       </main>
     </div>
-  )
+  );
 }

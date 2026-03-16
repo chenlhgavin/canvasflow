@@ -1,0 +1,76 @@
+---
+interface Feature {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+interface Props {
+  features: Feature[];
+  columns?: 2 | 3 | 4;
+}
+
+const { features, columns = 3 } = Astro.props;
+
+const gridCols = {
+  2: 'grid-cols-1 md:grid-cols-2',
+  3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+};
+---
+
+<div class={`feature-grid ${gridCols[columns]}`}>
+  {features.map((feature) => (
+    <div class="feature-item">
+      <div class="feature-icon">{feature.icon}</div>
+      <h3 class="feature-title">{feature.title}</h3>
+      <p class="feature-description">{feature.description}</p>
+    </div>
+  ))}
+</div>
+
+<style>
+  .feature-grid {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  @media (max-width: 640px) {
+    .feature-grid {
+      gap: var(--space-6);
+    }
+  }
+
+  .feature-item {
+    background: var(--surface);
+    padding: var(--space-8);
+    border-radius: var(--radius-lg);
+    transition: all var(--duration-normal) var(--ease-out);
+    text-align: center;
+  }
+
+  .feature-item:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .feature-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-4);
+    line-height: 1;
+  }
+
+  .feature-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+    color: var(--text-primary);
+  }
+
+  .feature-description {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+  }
+</style>

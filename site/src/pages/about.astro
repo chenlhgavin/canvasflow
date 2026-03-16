@@ -1,0 +1,175 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroSection from '../components/sections/HeroSection.astro';
+import FeatureGrid from '../components/content/FeatureGrid.astro';
+import { topics } from '../data/topics';
+import { url } from '../utils/path';
+
+const features = [
+  {
+    icon: '🖼️',
+    title: '图像生成',
+    description: '文生图、图像编辑、风格迁移、ControlNet、IP-Adapter 等图像生成技术',
+  },
+  {
+    icon: '🧊',
+    title: '3D 生成',
+    description: 'NeRF、3D Gaussian Splatting、Mesh 生成等 3D 内容创建技术',
+  },
+  {
+    icon: '🎬',
+    title: '视频生成',
+    description: '文生视频、视频编辑、运动控制、时序一致性等视频生成技术',
+  },
+  {
+    icon: '🧑‍🎤',
+    title: '虚拟人',
+    description: '数字人、Audio2Face、表情生成、全身驱动等虚拟人技术',
+  },
+  {
+    icon: '🎵',
+    title: '音频生成',
+    description: '语音合成、语音克隆、音乐生成、音效设计等音频技术',
+  },
+  {
+    icon: '🔗',
+    title: 'ComfyUI',
+    description: 'ComfyUI 工作流设计、自定义节点开发、最佳实践与高级技巧',
+  },
+];
+---
+
+<BaseLayout
+  title="关于"
+  description="关于 CanvasFlow - AIGC 领域技术知识汇总"
+>
+  <HeroSection
+    title="关于 CanvasFlow"
+    subtitle="汇聚 AIGC 领域技术知识，探索 AI 创作的无限可能。"
+    gradient={true}
+    backgroundImage={url('/images/heroes/about.png')}
+  />
+
+  <!-- 知识库涵盖领域 -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">知识库涵盖领域</h2>
+      <p class="section-description">
+        聚焦 AIGC 领域的技术知识与实践总结
+      </p>
+      <FeatureGrid features={features} columns={3} />
+    </div>
+  </section>
+
+  <!-- 当前主题 -->
+  <section class="section topics-section">
+    <div class="container">
+      <h2 class="section-title">当前主题</h2>
+      <div class="topics-list">
+        {topics.map((topic) => (
+          <a href={url(`/topics/${topic.slug}`)} class="topic-item">
+            <span class="topic-icon">{topic.icon}</span>
+            <div class="topic-info">
+              <h3 class="topic-name">{topic.name}</h3>
+              <p class="topic-desc">{topic.description}</p>
+            </div>
+            <span class="topic-count">
+              {topic.articles.length > 0 ? `${topic.articles.length} 篇` : '筹备中'}
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .section {
+    padding: var(--space-20) 0;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+
+  .section-description {
+    text-align: center;
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin: 0 auto var(--space-16);
+    line-height: 1.6;
+  }
+
+  .topics-section {
+    background: var(--surface);
+  }
+
+  .topics-list {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .topic-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    background: var(--background);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: all var(--duration-normal) var(--ease-out);
+    border-bottom: none !important;
+  }
+
+  .topic-item:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .topic-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+  }
+
+  .topic-info {
+    flex: 1;
+  }
+
+  .topic-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+  }
+
+  .topic-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .topic-count {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--primary);
+    white-space: nowrap;
+  }
+
+  :global([data-theme="motherduck"]) .topic-item {
+    border: 2px solid var(--text-primary);
+    border-radius: 0;
+  }
+
+  :global([data-theme="motherduck"]) .topic-item:hover {
+    transform: translate(4px, -4px);
+    box-shadow: rgb(56, 56, 56) -6px 6px 0px 0px;
+  }
+</style>

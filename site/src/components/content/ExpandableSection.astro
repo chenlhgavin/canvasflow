@@ -1,0 +1,97 @@
+---
+interface Props {
+  title: string;
+  defaultExpanded?: boolean;
+}
+
+const { title, defaultExpanded = false } = Astro.props;
+---
+
+<div class={`expandable-section ${defaultExpanded ? 'expanded' : ''}`}>
+  <button class="expandable-header" type="button">
+    <h3 class="expandable-title">{title}</h3>
+    <span class="expandable-icon">▼</span>
+  </button>
+  <div class="expandable-content">
+    <div class="expandable-body">
+      <slot />
+    </div>
+  </div>
+</div>
+
+<style>
+  .expandable-section {
+    margin-bottom: var(--space-6);
+  }
+
+  .expandable-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color var(--duration-fast) var(--ease-out);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .expandable-header {
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .expandable-header:hover {
+    border-bottom-color: var(--primary);
+  }
+
+  .expandable-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .expandable-icon {
+    font-size: 0.75rem;
+    color: var(--primary);
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .expandable-section.expanded .expandable-icon {
+    transform: rotate(180deg);
+  }
+
+  .expandable-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--duration-normal) var(--ease-out);
+  }
+
+  .expandable-section.expanded .expandable-content {
+    max-height: 2000px;
+  }
+
+  .expandable-body {
+    padding: var(--space-6) 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const sections = document.querySelectorAll('.expandable-section');
+
+    sections.forEach((section) => {
+      const header = section.querySelector('.expandable-header');
+
+      header?.addEventListener('click', () => {
+        section.classList.toggle('expanded');
+      });
+    });
+  });
+</script>

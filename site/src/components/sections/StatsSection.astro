@@ -1,0 +1,89 @@
+---
+interface Stat {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  stats: Stat[];
+}
+
+const { stats } = Astro.props;
+---
+
+<section class="stats-section">
+  <div class="container">
+    <div class="stats-grid">
+      {stats.map((stat) => (
+        <div class="stat-item">
+          <div class="stat-value">{stat.value}</div>
+          <div class="stat-label">{stat.label}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .stats-section {
+    padding: var(--space-20) 0;
+    background-color: var(--background);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-8);
+    text-align: center;
+  }
+
+  @media (min-width: 768px) {
+    .stats-grid {
+      gap: var(--space-12);
+    }
+  }
+
+  .stat-item {
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    background-color: var(--surface);
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .stat-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .stat-value {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: var(--space-2);
+    background: linear-gradient(135deg, var(--primary), var(--cursor-purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .stat-label {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-4);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+    }
+  }
+</style>

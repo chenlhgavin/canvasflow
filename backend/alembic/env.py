@@ -1,11 +1,15 @@
 """Alembic 环境配置"""
+
+import asyncio
+import os
 from logging.config import fileConfig
+
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from alembic import context
-import asyncio
 
-import os
+import canvasflow.models  # noqa: F401
+from alembic import context
+from canvasflow.database import Base
 
 config = context.config
 if config.config_file_name is not None:
@@ -14,10 +18,6 @@ if config.config_file_name is not None:
 # 环境变量优先覆盖 alembic.ini 中的 URL
 if database_url := os.environ.get("DATABASE_URL"):
     config.set_main_option("sqlalchemy.url", database_url)
-
-# 导入 Base 和所有模型
-from canvasflow.database import Base
-import canvasflow.models  # noqa: F401
 
 target_metadata = Base.metadata
 

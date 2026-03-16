@@ -102,6 +102,8 @@ Bucket: `canvasflow`，对象 key 格式：
 - 图片保存前必须经过 sRGB 归一化管线 (移除 ICC Profile)
 - 火山引擎 API 响应需兼容三种格式 (`data[].url` / `images[].url` / `url`)
 - `POST /api/canvases` 接收原始 JSON，不用 Pydantic 校验 (Excalidraw 数据结构复杂)
+- **ruff** 配置在 `pyproject.toml` (`[tool.ruff]`)：`line-length=120`，规则集 `E,F,W,I`
+- pre-commit 钩子自动执行 ruff lint (`--fix`) + ruff format
 
 ## 环境变量
 

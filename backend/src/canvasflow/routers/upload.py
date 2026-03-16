@@ -1,8 +1,11 @@
 """图片上传路由 - 上传到 MinIO"""
-import uuid
+
 import logging
+import uuid
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, UploadFile, File
+
+from fastapi import APIRouter, File, HTTPException, UploadFile
+
 from canvasflow.storage import upload_object
 
 router = APIRouter()

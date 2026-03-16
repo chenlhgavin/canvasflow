@@ -1,0 +1,323 @@
+/* ===== Animations ===== */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== Root Container ===== */
+.carousel {
+  position: relative;
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  background-color: var(--surface, #f5f5f5);
+  border-radius: 12px;
+  overflow: hidden;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.carousel:focus-visible {
+  box-shadow: 0 0 0 2px var(--primary, #0071e3);
+}
+
+.carousel:fullscreen {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.carouselFullscreen {
+  max-width: 100%;
+  background-color: #000;
+  border-radius: 0;
+  height: 100vh;
+}
+
+/* ===== Header ===== */
+.header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color, #e5e5e5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #1d1d1f);
+}
+
+.headerCounter {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #86868b);
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== Slide Area ===== */
+.slideArea {
+  position: relative;
+  flex: none;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--surface, #f5f5f5);
+  overflow: hidden;
+}
+
+.slideAreaFullscreen {
+  flex: 1;
+  aspect-ratio: auto;
+  background-color: #000;
+}
+
+/* ===== Loading Spinner ===== */
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary, #86868b);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* ===== Error State ===== */
+.errorState {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-secondary, #86868b);
+  font-size: 0.875rem;
+}
+
+/* ===== Slide Image ===== */
+.slideImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: opacity 0.3s ease;
+  user-select: none;
+}
+
+/* ===== Navigation Buttons ===== */
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition:
+    background-color 0.2s,
+    opacity 0.2s;
+  opacity: 0.7;
+  backdrop-filter: blur(8px);
+  padding: 0;
+}
+
+.navButton:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.navButtonLeft {
+  left: 12px;
+}
+
+.navButtonRight {
+  right: 12px;
+}
+
+/* ===== Fullscreen Counter Overlay ===== */
+.counterOverlay {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+}
+
+/* ===== Caption ===== */
+.caption {
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 0.9375rem;
+  color: var(--text-secondary, #86868b);
+}
+
+.captionFullscreen {
+  padding: 12px 20px;
+  color: #ccc;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* ===== Controls Bar (fullscreen only) ===== */
+.controlsBar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  z-index: 10;
+}
+
+.controlsBarFullscreen {
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  border-radius: 0 0 0 10px;
+}
+
+/* ===== Control Buttons (Play/Pause, Fullscreen) ===== */
+.controlButton {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-color, #d2d2d7);
+  background-color: transparent;
+  color: var(--text-primary, #1d1d1f);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.controlButton:hover {
+  border-color: var(--text-secondary, #86868b);
+}
+
+.controlButtonFullscreen {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.controlButtonFullscreen:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* ===== Progress Dots ===== */
+.progressDots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 200px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  border: none;
+  background-color: var(--border-color, #d2d2d7);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.dotActive {
+  width: 18px;
+  background-color: var(--primary, #0071e3);
+}
+
+.dotFullscreen {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.dotActiveFullscreen {
+  width: 24px;
+  background-color: #fff;
+}
+
+/* ===== Thumbnail Strip ===== */
+.thumbnailStrip {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 20px 16px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.thumbnail {
+  flex-shrink: 0;
+  width: 72px;
+  height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.6;
+  transition: all 0.2s;
+  background-color: var(--border-color, #d2d2d7);
+}
+
+.thumbnail:hover {
+  opacity: 0.85;
+}
+
+.thumbnailActive {
+  border-color: var(--primary, #0071e3);
+  opacity: 1;
+}
+
+.thumbnailImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+
+/* ===== Keyboard Hints ===== */
+.keyboardHints {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #86868b);
+  opacity: 0.6;
+}

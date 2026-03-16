@@ -1,7 +1,10 @@
 """工具调用记录模型"""
+
 from datetime import datetime
-from sqlalchemy import BigInteger, String, Text, DateTime, Enum, JSON, ForeignKey, func
+
+from sqlalchemy import JSON, BigInteger, DateTime, Enum, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from canvasflow.database import Base
 
 

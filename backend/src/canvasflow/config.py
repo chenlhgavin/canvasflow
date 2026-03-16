@@ -1,6 +1,8 @@
 """应用配置 - 使用 pydantic-settings 从 .env 加载"""
-from pydantic_settings import BaseSettings
+
 from functools import lru_cache
+
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):

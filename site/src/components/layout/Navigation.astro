@@ -1,0 +1,487 @@
+---
+import ThemeSwitcher from '../interactive/ThemeSwitcher.astro';
+import { topics } from '../../data/topics';
+import { url } from '../../utils/path';
+
+const FLATTEN_THRESHOLD = 5;
+const shouldFlatten = topics.length <= FLATTEN_THRESHOLD;
+---
+
+<nav class="nav" id="navbar">
+  <div class="container">
+    <div class="nav-content">
+      <a href={url('/')} class="logo">
+        <span class="logo-text">CanvasFlow</span>
+      </a>
+
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+        <span class="hamburger"></span>
+        <span class="hamburger"></span>
+        <span class="hamburger"></span>
+      </button>
+
+      <ul class="nav-links" id="nav-links">
+        <li class="nav-item">
+          <a href={url('/')} class="nav-link">首页</a>
+        </li>
+
+        {shouldFlatten ? (
+          /* 平铺模式：每个主题直接作为导航项 */
+          topics.map((topic) => (
+            <li class="nav-item">
+              <a href={url(`/topics/${topic.slug}`)} class="nav-link topic-nav-link">
+                <span class="topic-nav-icon">{topic.icon}</span>
+                {topic.name}
+              </a>
+            </li>
+          ))
+        ) : (
+          /* 下拉模式：主题数量较多时使用下拉菜单 */
+          <li class="nav-item nav-item-dropdown">
+            <button class="nav-link dropdown-trigger" id="topics-dropdown-trigger">
+              知识主题 <span class="dropdown-arrow">▾</span>
+            </button>
+            <ul class="dropdown-menu" id="topics-dropdown-menu">
+              {topics.map((topic) => (
+                <li>
+                  <a href={url(`/topics/${topic.slug}`)} class="dropdown-link">
+                    <span class="dropdown-icon">{topic.icon}</span>
+                    {topic.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        )}
+
+        <li class="nav-item">
+          <a href={url('/presentations')} class="nav-link">演示文稿</a>
+        </li>
+        <li class="nav-item">
+          <a href={url('/about')} class="nav-link">关于</a>
+        </li>
+        <li class="nav-item nav-item-theme">
+          <ThemeSwitcher />
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<style>
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-color);
+    transition: all var(--duration-normal) var(--ease-out);
+  }
+
+  .nav.scrolled {
+    background-color: var(--nav-bg-scrolled);
+    box-shadow: var(--shadow-sm);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .nav,
+    [data-theme="apple"] .nav {
+      background-color: rgba(0, 0, 0, 0.72);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+
+    :root:not([data-theme]) .nav.scrolled,
+    [data-theme="apple"] .nav.scrolled {
+      background-color: rgba(0, 0, 0, 0.95);
+    }
+  }
+
+  /* MotherDuck Theme Navigation */
+  :global([data-theme="motherduck"]) .nav {
+    border-bottom: 2px solid var(--text-primary);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  :global([data-theme="motherduck"]) .nav.scrolled {
+    box-shadow: none;
+  }
+
+  :global([data-theme="motherduck"]) .logo-text {
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    -webkit-text-fill-color: var(--text-primary);
+    font-family: var(--font-display);
+  }
+
+  :global([data-theme="motherduck"]) .nav-link {
+    font-family: var(--font-display);
+    border-bottom: none;
+  }
+
+  :global([data-theme="motherduck"]) .nav-link::after {
+    background: var(--accent);
+    height: 3px;
+  }
+
+  .nav-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: transform var(--duration-fast) var(--ease-out);
+    border-bottom: none !important;
+  }
+
+  .logo:hover {
+    transform: scale(1.02);
+    background: transparent !important;
+  }
+
+  .logo-text {
+    background: linear-gradient(135deg, var(--primary), var(--cursor-purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+
+  .hamburger {
+    width: 24px;
+    height: 2px;
+    background-color: var(--text-primary);
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    list-style: none;
+    margin: 0;
+  }
+
+  .nav-item {
+    margin: 0;
+  }
+
+  .nav-item-theme {
+    margin-left: 0.5rem;
+  }
+
+  .nav-link {
+    position: relative;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+    padding: 0.5rem 0;
+    border-bottom: none !important;
+  }
+
+  .nav-link:hover {
+    background: transparent !important;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary);
+    transition: width var(--duration-normal) var(--ease-out);
+  }
+
+  .nav-link:hover::after,
+  .nav-link.active::after {
+    width: 100%;
+  }
+
+  /* 平铺主题链接样式 */
+  .topic-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .topic-nav-icon {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Dropdown Styles */
+  .nav-item-dropdown {
+    position: relative;
+  }
+
+  .dropdown-trigger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: inherit;
+  }
+
+  .dropdown-arrow {
+    font-size: 0.75rem;
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .nav-item-dropdown:hover .dropdown-arrow,
+  .nav-item-dropdown.open .dropdown-arrow {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    list-style: none;
+    padding: 0.5rem;
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  .nav-item-dropdown:hover .dropdown-menu,
+  .nav-item-dropdown.open .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .dropdown-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background var(--duration-fast) var(--ease-out);
+    border-bottom: none !important;
+  }
+
+  .dropdown-link:hover {
+    background: var(--surface);
+  }
+
+  .dropdown-icon {
+    font-size: 1.125rem;
+  }
+
+  :global([data-theme="motherduck"]) .dropdown-menu {
+    border: 2px solid var(--text-primary);
+    border-radius: 0;
+    box-shadow: var(--shadow-sm);
+  }
+
+  :global([data-theme="motherduck"]) .dropdown-trigger {
+    font-family: var(--font-display);
+  }
+
+  /* Mobile Styles */
+  @media (max-width: 768px) {
+    .nav-toggle {
+      display: flex;
+    }
+
+    .nav-links {
+      position: fixed;
+      top: 64px;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      background-color: var(--nav-bg-scrolled);
+      backdrop-filter: blur(20px);
+      padding: 2rem;
+      gap: 1.5rem;
+      transform: translateY(-100%);
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--duration-normal) var(--ease-out);
+      box-shadow: var(--shadow-lg);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) .nav-links,
+      [data-theme="apple"] .nav-links {
+        background-color: rgba(0, 0, 0, 0.95);
+      }
+    }
+
+    :global([data-theme="motherduck"]) .nav-links {
+      border: 2px solid var(--text-primary);
+      border-top: none;
+      box-shadow: rgb(56, 56, 56) -8px 8px 0px 0px;
+    }
+
+    .nav-links.open {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .nav-item {
+      width: 100%;
+    }
+
+    .nav-item-theme {
+      margin-left: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .nav-link {
+      display: block;
+      padding: 0.75rem 0;
+      font-size: 1.125rem;
+    }
+
+    .topic-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-sm {
+      width: 100%;
+      text-align: center;
+    }
+
+    .nav-toggle.active .hamburger:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .nav-toggle.active .hamburger:nth-child(2) {
+      opacity: 0;
+    }
+
+    .nav-toggle.active .hamburger:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -6px);
+    }
+
+    .dropdown-menu {
+      position: static;
+      transform: none;
+      box-shadow: none;
+      border: none;
+      padding: 0 0 0 1rem;
+      background: transparent;
+      display: none;
+    }
+
+    .nav-item-dropdown.open .dropdown-menu {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .dropdown-trigger {
+      font-size: 1.125rem;
+      padding: 0.75rem 0;
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .dropdown-link {
+      padding: 0.5rem 0;
+    }
+  }
+</style>
+
+<script>
+  // Navigation scroll effect
+  const navbar = document.getElementById('navbar');
+  const navToggle = document.getElementById('nav-toggle');
+  const navLinks = document.getElementById('nav-links');
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      navbar?.classList.add('scrolled');
+    } else {
+      navbar?.classList.remove('scrolled');
+    }
+  });
+
+  // Mobile menu toggle
+  navToggle?.addEventListener('click', () => {
+    navToggle.classList.toggle('active');
+    navLinks?.classList.toggle('open');
+  });
+
+  // Close menu when clicking a link
+  const menuLinks = document.querySelectorAll('.nav-link');
+  menuLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      navToggle?.classList.remove('active');
+      navLinks?.classList.remove('open');
+    });
+  });
+
+  // Highlight active page
+  const currentPath = window.location.pathname;
+  menuLinks.forEach(link => {
+    if (link.getAttribute('href') === currentPath) {
+      link.classList.add('active');
+    }
+  });
+
+  // Dropdown toggle for mobile
+  const dropdownTrigger = document.getElementById('topics-dropdown-trigger');
+  const dropdownParent = dropdownTrigger?.closest('.nav-item-dropdown');
+  dropdownTrigger?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownParent?.classList.toggle('open');
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', () => {
+    dropdownParent?.classList.remove('open');
+  });
+</script>

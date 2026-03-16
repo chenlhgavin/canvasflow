@@ -1,22 +1,22 @@
 """CanvasFlow 后端主程序"""
+
 import logging
 from contextlib import asynccontextmanager
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
 
-load_dotenv()
-
+import canvasflow.models  # noqa: F401
+from canvasflow.auth.middleware import AuthMiddleware
+from canvasflow.auth.router import router as auth_router
+from canvasflow.auth.service import seed_default_user
 from canvasflow.config import settings
 from canvasflow.database import init_db
+from canvasflow.routers import canvas, chat, storage, upload
 from canvasflow.storage import ensure_bucket
-from canvasflow.routers import chat, canvas, upload, storage
-from canvasflow.auth.router import router as auth_router
-from canvasflow.auth.middleware import AuthMiddleware
-from canvasflow.auth.service import seed_default_user
 
-# 导入所有模型确保 Base.metadata 包含它们
-import canvasflow.models  # noqa: F401
+load_dotenv()
 
 # 配置日志
 logging.basicConfig(

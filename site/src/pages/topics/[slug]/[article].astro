@@ -1,0 +1,343 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../../components/content/Breadcrumb.astro';
+import { topics, getTopic } from '../../../data/topics';
+import { url } from '../../../utils/path';
+import type { GetStaticPaths } from 'astro';
+
+// 加载所有文章 Markdown 内容
+const contentFiles = import.meta.glob('/src/content/**/*.md', { eager: true }) as Record<string, { compiledContent: () => string }>;
+
+export const getStaticPaths = (() => {
+  return topics.flatMap((topic) =>
+    topic.articles.map((article) => ({
+      params: { slug: topic.slug, article: article.slug },
+    }))
+  );
+}) satisfies GetStaticPaths;
+
+const { slug, article: articleSlug } = Astro.params;
+const topic = getTopic(slug);
+
+if (!topic) {
+  return Astro.redirect(url('/'));
+}
+
+const article = topic.articles.find((a) => a.slug === articleSlug);
+
+if (!article) {
+  return Astro.redirect(url(`/topics/${slug}`));
+}
+
+const currentIndex = topic.articles.findIndex((a) => a.slug === articleSlug);
+const prevArticle = currentIndex > 0 ? topic.articles[currentIndex - 1] : null;
+const nextArticle = currentIndex < topic.articles.length - 1 ? topic.articles[currentIndex + 1] : null;
+
+const formattedDate = new Date(article.date).toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const formattedUpdated = article.updated
+  ? new Date(article.updated).toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  : null;
+
+// 加载对应的 Markdown 内容
+const contentKey = `/src/content/${slug}/${articleSlug}.md`;
+const contentModule = contentFiles[contentKey];
+const htmlContent = contentModule?.compiledContent?.() || '';
+
+const breadcrumbItems = [
+  { name: topic.name, href: url(`/topics/${topic.slug}`) },
+  { name: article.title },
+];
+---
+
+<BaseLayout
+  title={article.title}
+  description={article.summary}
+>
+  <section class="article-page">
+    <div class="container">
+      <Breadcrumb items={breadcrumbItems} />
+
+      <article class="article-content">
+        <header class="article-header">
+          <div class="article-meta">
+            <a href={url(`/topics/${topic.slug}`)} class="article-topic" style={`color: ${topic.color}`}>
+              {topic.icon} {topic.name}
+            </a>
+            <span class="article-date">{formattedDate}</span>
+            {formattedUpdated && (
+              <span class="article-updated">（更新于 {formattedUpdated}）</span>
+            )}
+            {article.readingTime && (
+              <span class="article-reading-time">{article.readingTime}</span>
+            )}
+          </div>
+          <h1 class="article-title">{article.title}</h1>
+          <p class="article-summary">{article.summary}</p>
+          <div class="article-tags">
+            {article.tags.map((tag) => (
+              <span class="article-tag">{tag}</span>
+            ))}
+          </div>
+          {article.image && (
+            <div class="article-hero-image">
+              <img src={url(article.image)} alt={article.title} />
+            </div>
+          )}
+        </header>
+
+        <div class="article-body prose">
+          {htmlContent ? (
+            <Fragment set:html={htmlContent} />
+          ) : (
+            <p class="placeholder-text">文章内容即将更新...</p>
+          )}
+        </div>
+      </article>
+
+      <!-- 导航 -->
+      <nav class="article-nav">
+        {prevArticle ? (
+          <a href={url(`/topics/${topic.slug}/${prevArticle.slug}`)} class="nav-prev">
+            <span class="nav-label">上一篇</span>
+            <span class="nav-title">{prevArticle.title}</span>
+          </a>
+        ) : (
+          <div />
+        )}
+        {nextArticle ? (
+          <a href={url(`/topics/${topic.slug}/${nextArticle.slug}`)} class="nav-next">
+            <span class="nav-label">下一篇</span>
+            <span class="nav-title">{nextArticle.title}</span>
+          </a>
+        ) : (
+          <div />
+        )}
+      </nav>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .article-page {
+    padding: var(--space-8) 0 var(--space-24);
+  }
+
+  .article-content {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .article-header {
+    margin-bottom: var(--space-12);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .article-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-4);
+  }
+
+  .article-topic {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: none !important;
+  }
+
+  .article-topic:hover {
+    opacity: 0.8;
+  }
+
+  .article-date,
+  .article-updated,
+  .article-reading-time {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .article-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+
+  .article-summary {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-6);
+  }
+
+  .article-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .article-tag {
+    font-size: 0.8125rem;
+    padding: 0.25rem 0.75rem;
+    background: var(--surface);
+    color: var(--text-secondary);
+    border-radius: var(--radius-full);
+    font-weight: 500;
+  }
+
+  .article-hero-image {
+    margin-top: var(--space-8);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+
+  .article-hero-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .article-hero-image:hover img {
+    transform: scale(1.02);
+  }
+
+  .article-body {
+    font-size: 1.0625rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+  }
+
+  .placeholder-text {
+    text-align: center;
+    padding: var(--space-16) 0;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  .article-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+    margin-top: var(--space-16);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-color);
+    max-width: 860px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .nav-prev,
+  .nav-next {
+    display: block;
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-out);
+    border-bottom: none !important;
+  }
+
+  .nav-prev:hover,
+  .nav-next:hover {
+    background: var(--surface);
+  }
+
+  .nav-next {
+    text-align: right;
+  }
+
+  .nav-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-title {
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--primary);
+  }
+
+  @media (max-width: 640px) {
+    .article-nav {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  // Mermaid 图表渲染
+  import mermaid from 'mermaid';
+
+  async function initMermaid() {
+    const blocks = document.querySelectorAll('pre[data-language="mermaid"]');
+    if (blocks.length === 0) return;
+
+    const theme = document.documentElement.getAttribute('data-theme');
+    const isDark = theme === 'dark' || theme === 'github-dark';
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: isDark ? 'dark' : 'default',
+      securityLevel: 'loose',
+      fontFamily: 'Inter, system-ui, sans-serif',
+    });
+
+    blocks.forEach((pre) => {
+      const code = pre.textContent || '';
+      if (!code.trim()) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mermaid-wrapper';
+      const div = document.createElement('div');
+      div.className = 'mermaid';
+      div.textContent = code.trim();
+      wrapper.appendChild(div);
+      pre.replaceWith(wrapper);
+    });
+
+    const mermaidDivs = document.querySelectorAll('.mermaid');
+    for (let i = 0; i < mermaidDivs.length; i++) {
+      const div = mermaidDivs[i] as HTMLElement;
+      const code = div.textContent || '';
+      const id = `mermaid-diagram-${i}`;
+      try {
+        const { svg } = await mermaid.render(id, code);
+        div.innerHTML = svg;
+      } catch (err) {
+        console.warn(`Mermaid 图表 ${i} 渲染失败:`, err);
+        div.style.whiteSpace = 'pre-wrap';
+        div.style.fontFamily = 'monospace';
+        div.style.fontSize = '0.85rem';
+        div.style.color = '#999';
+        div.style.padding = '1rem';
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMermaid);
+  } else {
+    initMermaid();
+  }
+
+  document.addEventListener('astro:after-swap', initMermaid);
+</script>

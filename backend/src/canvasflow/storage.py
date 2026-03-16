@@ -1,7 +1,10 @@
 """MinIO 对象存储客户端封装"""
+
 import logging
 from io import BytesIO
+
 from minio import Minio
+
 from canvasflow.config import settings
 
 logger = logging.getLogger(__name__)
@@ -33,7 +36,9 @@ def ensure_bucket():
         logger.info(f"存储桶已存在: {bucket}")
 
 
-def upload_object(object_key: str, data: bytes | BytesIO, content_type: str = "application/octet-stream", length: int = -1) -> str:
+def upload_object(
+    object_key: str, data: bytes | BytesIO, content_type: str = "application/octet-stream", length: int = -1
+) -> str:
     """上传对象到 MinIO"""
     client = get_minio_client()
     bucket = settings.minio_bucket

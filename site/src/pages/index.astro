@@ -1,0 +1,180 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroSection from '../components/sections/HeroSection.astro';
+import StatsSection from '../components/sections/StatsSection.astro';
+import TopicCard from '../components/cards/TopicCard.astro';
+import ArticleCard from '../components/cards/ArticleCard.astro';
+import { topics, getStats, getAllArticles, getTopicsSummary } from '../data/topics';
+import { url } from '../utils/path';
+
+const stats_data = getStats();
+const topicsSummary = getTopicsSummary();
+const recentArticles = getAllArticles().slice(0, 6);
+
+const stats = [
+  { value: `${stats_data.topicCount}`, label: '知识主题' },
+  { value: `${stats_data.articleCount}`, label: '技术文章' },
+  { value: `${stats_data.tagCount}`, label: '标签分类' },
+  { value: '∞', label: '持续更新' },
+];
+---
+
+<BaseLayout
+  title="首页"
+  description="CanvasFlow - AIGC 领域技术知识库，涵盖图像生成、3D、视频、虚拟人、音频、ComfyUI 等技术"
+>
+  <HeroSection
+    title="CanvasFlow"
+    subtitle="汇聚图像生成、3D、视频、虚拟人、音频、ComfyUI 等 AIGC 领域的技术知识，探索 AI 创作的无限可能。"
+    cta={{ text: '开始探索', href: '#topics' }}
+    gradient={true}
+    backgroundImage={url('/images/heroes/home.png')}
+  />
+
+  <StatsSection stats={stats} />
+
+  <!-- 知识主题 -->
+  <section class="section" id="topics">
+    <div class="container">
+      <h2 class="section-title">知识主题</h2>
+      <p class="section-description">
+        选择感兴趣的 AIGC 主题，深入探索技术知识
+      </p>
+      <div class="topics-grid">
+        {topicsSummary.map((topic) => (
+          <TopicCard {...topic} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 最新文章 -->
+  {recentArticles.length > 0 && (
+    <section class="section recent-section">
+      <div class="container">
+        <h2 class="section-title">最新文章</h2>
+        <p class="section-description">
+          最近更新的技术文章和学习笔记
+        </p>
+        <div class="articles-grid">
+          {recentArticles.map((article) => (
+            <ArticleCard
+              slug={article.slug}
+              title={article.title}
+              summary={article.summary}
+              tags={article.tags}
+              date={article.date}
+              readingTime={article.readingTime}
+              topicSlug={article.topicSlug}
+              topicName={article.topicName}
+              topicIcon={article.topicIcon}
+              topicColor={article.topicColor}
+              image={article.image}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- 空状态提示 -->
+  {recentArticles.length === 0 && (
+    <section class="section empty-section">
+      <div class="container">
+        <div class="empty-state">
+          <div class="empty-icon">📝</div>
+          <h2 class="empty-title">文章正在路上</h2>
+          <p class="empty-description">
+            知识库正在建设中，文章将陆续更新。敬请期待！
+          </p>
+        </div>
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .section {
+    padding: var(--space-20) 0;
+  }
+
+  @media (min-width: 768px) {
+    .section {
+      padding: var(--space-24) 0;
+    }
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+
+  .section-description {
+    text-align: center;
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin: 0 auto var(--space-16);
+    line-height: 1.6;
+  }
+
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-8);
+  }
+
+  @media (max-width: 640px) {
+    .topics-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+  }
+
+  .recent-section {
+    background: var(--surface);
+  }
+
+  .articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--space-6);
+  }
+
+  @media (max-width: 640px) {
+    .articles-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .empty-section {
+    background: var(--surface);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-16) 0;
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: var(--space-6);
+  }
+
+  .empty-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+  }
+
+  .empty-description {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+</style>

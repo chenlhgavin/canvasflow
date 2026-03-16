@@ -1,0 +1,143 @@
+---
+interface AccordionItem {
+  title: string;
+  content: string;
+}
+
+interface Props {
+  items: AccordionItem[];
+  allowMultiple?: boolean;
+}
+
+const { items, allowMultiple = false } = Astro.props;
+---
+
+<div class="accordion" data-allow-multiple={allowMultiple}>
+  {items.map((item, index) => (
+    <div class="accordion-item" data-index={index}>
+      <button class="accordion-header" type="button">
+        <span class="accordion-title">{item.title}</span>
+        <span class="accordion-icon">+</span>
+      </button>
+      <div class="accordion-content">
+        <div class="accordion-body">
+          <Fragment set:html={item.content} />
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
+<style>
+  .accordion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .accordion-item {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: box-shadow var(--duration-normal) var(--ease-out);
+  }
+
+  .accordion-item:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .accordion-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-6);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .accordion-header:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .accordion-header:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+
+  .accordion-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  .accordion-icon {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--primary);
+    transition: transform var(--duration-normal) var(--ease-out);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .accordion-item.active .accordion-icon {
+    transform: rotate(45deg);
+  }
+
+  .accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--duration-normal) var(--ease-out);
+  }
+
+  .accordion-item.active .accordion-content {
+    max-height: 1000px;
+  }
+
+  .accordion-body {
+    padding: 0 var(--space-6) var(--space-6);
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const accordions = document.querySelectorAll('.accordion');
+
+    accordions.forEach((accordion) => {
+      const allowMultiple = accordion.getAttribute('data-allow-multiple') === 'true';
+      const items = accordion.querySelectorAll('.accordion-item');
+
+      items.forEach((item) => {
+        const header = item.querySelector('.accordion-header');
+
+        header?.addEventListener('click', () => {
+          const isActive = item.classList.contains('active');
+
+          if (!allowMultiple) {
+            items.forEach((otherItem) => {
+              if (otherItem !== item) {
+                otherItem.classList.remove('active');
+              }
+            });
+          }
+
+          if (isActive) {
+            item.classList.remove('active');
+          } else {
+            item.classList.add('active');
+          }
+        });
+      });
+    });
+  });
+</script>

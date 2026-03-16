@@ -1,0 +1,151 @@
+---
+interface TimelineItem {
+  week: number;
+  title: string;
+  milestone: string;
+  color?: string;
+}
+
+interface Props {
+  items: TimelineItem[];
+}
+
+const { items } = Astro.props;
+
+const colors = [
+  'var(--cursor-purple)',
+  'var(--notebooklm-blue)',
+  'var(--claude-orange)',
+  'var(--mcp-green)',
+  'var(--primary)',
+  '#ec4899',
+  '#f59e0b',
+  '#6366f1',
+];
+---
+
+<div class="timeline">
+  <div class="timeline-line"></div>
+  {items.map((item, index) => (
+    <div class="timeline-item" data-index={index}>
+      <div
+        class="timeline-dot"
+        style={`background-color: ${item.color || colors[index % colors.length]}`}
+      >
+        <span class="timeline-week">{item.week}</span>
+      </div>
+      <div class="timeline-content">
+        <h3 class="timeline-title">{item.title}</h3>
+        <p class="timeline-milestone">{item.milestone}</p>
+      </div>
+    </div>
+  ))}
+</div>
+
+<style>
+  .timeline {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--space-8) 0;
+  }
+
+  .timeline-line {
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(
+      to bottom,
+      var(--cursor-purple),
+      var(--notebooklm-blue),
+      var(--claude-orange),
+      var(--mcp-green)
+    );
+    opacity: 0.3;
+  }
+
+  @media (min-width: 768px) {
+    .timeline-line {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: var(--space-12);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 768px) {
+    .timeline-item {
+      justify-content: center;
+    }
+
+    .timeline-item:nth-child(even) {
+      flex-direction: row-reverse;
+    }
+  }
+
+  .timeline-dot {
+    position: relative;
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 4px var(--background), var(--shadow-md);
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .timeline-item:hover .timeline-dot {
+    transform: scale(1.1);
+  }
+
+  .timeline-week {
+    color: white;
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+
+  .timeline-content {
+    flex: 1;
+    background: var(--surface);
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--duration-normal) var(--ease-out);
+    max-width: 350px;
+  }
+
+  @media (min-width: 768px) {
+    .timeline-content {
+      max-width: 400px;
+    }
+  }
+
+  .timeline-item:hover .timeline-content {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .timeline-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+    color: var(--text-primary);
+  }
+
+  .timeline-milestone {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.5;
+  }
+</style>

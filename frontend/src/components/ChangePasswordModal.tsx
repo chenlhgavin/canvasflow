@@ -1,43 +1,43 @@
-import { useState } from 'react'
-import { changePassword } from '../utils/api'
-import './ChangePasswordModal.css'
+import { useState } from 'react';
+import { changePassword } from '../utils/api';
+import './ChangePasswordModal.css';
 
 interface Props {
-  onClose: () => void
+  onClose: () => void;
 }
 
 export default function ChangePasswordModal({ onClose }: Props) {
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError('');
 
     if (newPassword !== confirmPassword) {
-      setError('New passwords do not match')
-      return
+      setError('New passwords do not match');
+      return;
     }
 
-    setSubmitting(true)
+    setSubmitting(true);
     try {
-      await changePassword(currentPassword, newPassword)
-      setSuccess(true)
-      setTimeout(() => onClose(), 1500)
+      await changePassword(currentPassword, newPassword);
+      setSuccess(true);
+      setTimeout(() => onClose(), 1500);
     } catch (err: any) {
-      setError(err.message || 'Failed to change password')
+      setError(err.message || 'Failed to change password');
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
   }
 
   function handleBackdropClick(e: React.MouseEvent) {
     if (e.target === e.currentTarget) {
-      onClose()
+      onClose();
     }
   }
 
@@ -47,8 +47,18 @@ export default function ChangePasswordModal({ onClose }: Props) {
         <div className="cpw-header">
           <h2 className="cpw-title">Change Password</h2>
           <button type="button" className="cpw-close" onClick={onClose} aria-label="Close">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
@@ -65,7 +75,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
                 id="cpw-current"
                 type="password"
                 value={currentPassword}
-                onChange={e => setCurrentPassword(e.target.value)}
+                onChange={(e) => setCurrentPassword(e.target.value)}
                 autoComplete="current-password"
                 autoFocus
                 required
@@ -78,7 +88,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
                 id="cpw-new"
                 type="password"
                 value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
+                onChange={(e) => setNewPassword(e.target.value)}
                 autoComplete="new-password"
                 minLength={8}
                 required
@@ -92,7 +102,7 @@ export default function ChangePasswordModal({ onClose }: Props) {
                 id="cpw-confirm"
                 type="password"
                 value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 autoComplete="new-password"
                 minLength={8}
                 required
@@ -115,5 +125,5 @@ export default function ChangePasswordModal({ onClose }: Props) {
         )}
       </div>
     </div>
-  )
+  );
 }

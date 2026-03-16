@@ -1,8 +1,11 @@
 """聊天路由 - SSE 流式对话"""
+
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+
 from canvasflow.services.agent import process_chat_stream
 
 router = APIRouter()
@@ -28,8 +31,8 @@ async def chat(request: ChatRequest):
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
                 "X-Accel-Buffering": "no",
-                "Content-Type": "text/event-stream; charset=utf-8"
-            }
+                "Content-Type": "text/event-stream; charset=utf-8",
+            },
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,8 +1,11 @@
 """画布路由 - 项目 CRUD（MySQL 异步操作）"""
+
 import json
 import logging
+
 from fastapi import APIRouter, Request
-from sqlalchemy import select, delete
+from sqlalchemy import delete, select
+
 from canvasflow.database import async_session
 from canvasflow.models.canvas import Canvas
 from canvasflow.models.message import Message
@@ -16,9 +19,7 @@ logger = logging.getLogger(__name__)
 async def get_canvases():
     """获取所有画布及关联消息，返回与 PolyStudio 兼容的 JSON 结构"""
     async with async_session() as session:
-        result = await session.execute(
-            select(Canvas).order_by(Canvas.created_at.desc())
-        )
+        result = await session.execute(select(Canvas).order_by(Canvas.created_at.desc()))
         canvases = result.scalars().all()
 
         output = []
@@ -100,14 +101,10 @@ async def save_canvas(request: Request):
                 # 先删除旧 tool_calls，再删除旧消息，避免 identity map 冲突
                 await session.execute(
                     delete(ToolCallRecord).where(
-                        ToolCallRecord.message_id.in_(
-                            select(Message.id).where(Message.canvas_id == canvas_id)
-                        )
+                        ToolCallRecord.message_id.in_(select(Message.id).where(Message.canvas_id == canvas_id))
                     )
                 )
-                await session.execute(
-                    delete(Message).where(Message.canvas_id == canvas_id)
-                )
+                await session.execute(delete(Message).where(Message.canvas_id == canvas_id))
                 await session.flush()
                 session.expire_all()
             else:
