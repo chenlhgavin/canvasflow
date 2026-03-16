@@ -442,7 +442,7 @@ a:hover {
   margin: var(--space-8) 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  padding: var(--space-4);
+  padding: var(--space-6);
   background: var(--surface);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
@@ -456,6 +456,29 @@ a:hover {
 .mermaid svg {
   max-width: 100%;
   height: auto;
+  /* 减少 mermaid 内部生成的大量空白 */
+  max-height: 600px;
+}
+
+/* Mermaid SVG 覆盖 — 确保节点融入站点配色，减少内部间距 */
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node polygon {
+  stroke-width: 1.5px;
+}
+
+.mermaid .edgePath .path {
+  stroke-width: 1.5px;
+}
+
+.mermaid .label {
+  font-family: Inter, system-ui, sans-serif;
+}
+
+/* 收紧 subgraph 内部空白 */
+.mermaid .cluster rect {
+  rx: 8 !important;
+  ry: 8 !important;
 }
 
 .diagram-caption {
@@ -487,7 +510,7 @@ a:hover {
 
 /* Article Prose Styles */
 .prose {
-  max-width: 860px;
+  max-width: 1080px;
   margin: 0 auto;
 }
 
@@ -505,11 +528,15 @@ a:hover {
 .prose h2 {
   font-size: 1.75rem;
   padding-bottom: 0.5rem;
+  padding-left: 0.75rem;
   border-bottom: 1px solid var(--border-color);
+  border-left: 3px solid var(--primary);
 }
 
 .prose h3 {
   font-size: 1.375rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--border-color);
 }
 
 .prose p {
@@ -521,6 +548,15 @@ a:hover {
 .prose ol {
   margin-bottom: 1.25em;
   padding-left: 1.5em;
+}
+
+.prose ul > li::marker {
+  color: var(--primary);
+}
+
+.prose ol > li::marker {
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .prose li {
@@ -541,6 +577,7 @@ a:hover {
   padding: 1.25em;
   background: var(--surface);
   border-radius: var(--radius-md);
+  border-left: 3px solid var(--primary);
   overflow-x: auto;
   font-size: 0.875rem;
   line-height: 1.7;
@@ -553,8 +590,8 @@ a:hover {
 }
 
 .prose blockquote {
-  border-left: 3px solid var(--primary);
-  padding: 0.5em 1em;
+  border-left: 4px solid var(--primary);
+  padding: 1em 1.25em;
   margin: 1.5em 0;
   background: var(--surface);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
@@ -563,6 +600,7 @@ a:hover {
 .prose blockquote p {
   margin-bottom: 0;
   color: var(--text-secondary);
+  font-style: italic;
 }
 
 .prose img {
@@ -581,23 +619,52 @@ a:hover {
   color: var(--accent);
 }
 
+/* 宽表格横向滚动容器 */
+.prose .table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1.5em 0;
+}
+
 .prose table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   margin: 1.5em 0;
   font-size: 0.9375rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 .prose th,
 .prose td {
   padding: 0.75em 1em;
-  border: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
   text-align: left;
+}
+
+.prose th:last-child,
+.prose td:last-child {
+  border-right: none;
+}
+
+.prose tr:last-child td {
+  border-bottom: none;
 }
 
 .prose th {
   background: var(--surface);
   font-weight: 600;
+}
+
+.prose tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--surface) 50%, transparent);
+}
+
+.prose tbody tr:hover {
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
 }
 
 .prose hr {

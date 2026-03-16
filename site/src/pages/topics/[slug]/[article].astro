@@ -132,7 +132,7 @@ const breadcrumbItems = [
   }
 
   .article-content {
-    max-width: 860px;
+    max-width: 1080px;
     margin: 0 auto;
   }
 
@@ -236,7 +236,7 @@ const breadcrumbItems = [
     margin-top: var(--space-16);
     padding-top: var(--space-8);
     border-top: 1px solid var(--border-color);
-    max-width: 860px;
+    max-width: 1080px;
     margin-left: auto;
     margin-right: auto;
   }
@@ -296,9 +296,31 @@ const breadcrumbItems = [
 
     mermaid.initialize({
       startOnLoad: false,
-      theme: isDark ? 'dark' : 'default',
+      theme: 'base',
+      themeVariables: isDark
+        ? {
+            primaryColor: '#1d1d1f',
+            primaryTextColor: '#f5f5f7',
+            primaryBorderColor: 'rgba(255,255,255,0.15)',
+            lineColor: '#a1a1a6',
+            secondaryColor: '#2d2d2f',
+            tertiaryColor: '#1d1d1f',
+            noteBkgColor: '#1d1d1f',
+            noteTextColor: '#f5f5f7',
+            fontFamily: 'Inter, system-ui, sans-serif',
+          }
+        : {
+            primaryColor: '#e8f0fe',
+            primaryTextColor: '#1d1d1f',
+            primaryBorderColor: 'rgba(0,0,0,0.1)',
+            lineColor: '#86868b',
+            secondaryColor: '#f0f4ff',
+            tertiaryColor: '#f5f5f7',
+            noteBkgColor: '#f5f5f7',
+            noteTextColor: '#1d1d1f',
+            fontFamily: 'Inter, system-ui, sans-serif',
+          },
       securityLevel: 'loose',
-      fontFamily: 'Inter, system-ui, sans-serif',
     });
 
     blocks.forEach((pre) => {
@@ -322,6 +344,25 @@ const breadcrumbItems = [
       try {
         const { svg } = await mermaid.render(id, code);
         div.innerHTML = svg;
+
+        // 裁剪 SVG 多余空白：根据实际内容重新计算 viewBox
+        const svgEl = div.querySelector('svg');
+        if (svgEl) {
+          // 先确保 SVG 可见以获得准确 BBox
+          svgEl.style.maxWidth = '100%';
+          svgEl.style.height = 'auto';
+          // 移除 mermaid 设置的固定宽高，改用 viewBox 自适应
+          const bbox = svgEl.getBBox();
+          const padding = 16;
+          const vbX = bbox.x - padding;
+          const vbY = bbox.y - padding;
+          const vbW = bbox.width + padding * 2;
+          const vbH = bbox.height + padding * 2;
+          svgEl.setAttribute('viewBox', `${vbX} ${vbY} ${vbW} ${vbH}`);
+          svgEl.removeAttribute('width');
+          svgEl.setAttribute('height', `${vbH}px`);
+          svgEl.style.maxHeight = '600px';
+        }
       } catch (err) {
         console.warn(`Mermaid 图表 ${i} 渲染失败:`, err);
         div.style.whiteSpace = 'pre-wrap';
