@@ -81,6 +81,16 @@ export const topics: Topic[] = [
         image: '/images/articles/gan-deep-dive.png',
       },
       {
+        slug: 'clip-t5-deep-dive',
+        title: 'CLIP / T5 深度解析：文生图时代的两位“提示词翻译官”',
+        summary:
+          '用生动形象的方式深入解析 CLIP 与 T5 的技术原理、核心差异，以及它们在 Stable Diffusion 3、FLUX 等文生图系统中的应用场景。',
+        tags: ['CLIP', 'T5', '文本编码器', 'Stable Diffusion 3', 'FLUX', 'MM-DiT'],
+        date: '2026-03-18',
+        readingTime: '18 分钟',
+        image: '/images/articles/clip-t5-deep-dive.png',
+      },
+      {
         slug: 'autoregressive-deep-dive',
         title: '自回归图像生成深度解析：从 Token 预测到视觉创造',
         summary:
