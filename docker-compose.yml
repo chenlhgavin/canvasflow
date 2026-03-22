@@ -35,4 +35,4 @@ services:
 networks:
   infra:
     external: true
-    name: infrastructure_default
+    name: infrastructure
